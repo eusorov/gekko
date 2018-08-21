@@ -66,6 +66,9 @@ var Base = function(settings) {
   if(!this.onTrade)
     this.onTrade = function() {};
 
+  if(!this.updateOneMin) //get OneMinCandles!
+    this.updateOneMin = function() {};
+
   // let's run the implemented starting point
   this.init();
 
