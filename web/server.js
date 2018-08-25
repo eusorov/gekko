@@ -2,7 +2,7 @@ const config = require('./vue/dist/UIconfig');
 
 const Koa = require('koa');
 const serve = require('koa-static');
-const cors = require('koa2-cors');
+const cors = require('@koa/cors');
 const _ = require('lodash');
 const bodyParser = require('koa-bodyparser');
 

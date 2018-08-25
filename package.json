@@ -15,6 +15,7 @@
   },
   "author": "Mike van Rossum <mike@mvr.me>",
   "dependencies": {
+    "@koa/cors": "^2.2.2",
     "async": "2.1.2",
     "bitfinex-api-node": "^1.2.1",
     "commander": "^2.13.0",
@@ -26,7 +27,6 @@
     "koa-logger": "^2.0.0",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
-    "koa2-cors": "^2.0.6",
     "lodash": "2.x",
     "moment": "^2.20.1",
     "opn": "^4.0.2",
