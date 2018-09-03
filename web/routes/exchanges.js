@@ -1,5 +1,7 @@
 const _ = require('lodash');
 const fs = require('fs');
+const {promisify} = require('util');
+const readdirAsync = promisify(fs.readdir);
 
 const gekkoRoot = __dirname + '/../../';
 var util = require(__dirname + '/../../core/util');
@@ -11,8 +13,8 @@ config.silent = false;
 
 util.setConfig(config);
 
-module.exports = function (ctx) {
-  const exchangesDir = fs.readdirSync(gekkoRoot + 'exchange/wrappers/');
+module.exports = async function (ctx) {
+  const exchangesDir = await readdirAsync(gekkoRoot + 'exchange/wrappers/');
   const exchanges = exchangesDir
     .filter(f => _.last(f, 3).join('') === '.js')
     .map(f => f.slice(0, -3));
