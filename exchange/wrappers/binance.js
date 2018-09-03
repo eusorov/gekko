@@ -82,7 +82,8 @@ const recoverableErrors = [
   'ETIMEDOUT',
   'EHOSTUNREACH',
   // getaddrinfo EAI_AGAIN api.binance.com api.binance.com:443
-  'EAI_AGAIN'
+  'EAI_AGAIN',
+  'ENETUNREACH'
 ];
 
 const includes = (str, list) => {
@@ -307,6 +308,7 @@ Trader.prototype.isValidPrice = function(price) {
 }
 
 Trader.prototype.isValidLot = function(price, amount) {
+  console.log('isValidLot', this.market.minimalOrder.order, amount * price >= this.market.minimalOrder.order)
   return amount * price >= this.market.minimalOrder.order;
 }
 

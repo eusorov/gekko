@@ -60,7 +60,9 @@ const recoverableErrors = [
   'HTTP 504 Error',
   'HTTP 503 Error',
   'socket hang up',
-  'EHOSTUNREACH'
+  'EHOSTUNREACH',
+  'EAI_AGAIN',
+  'ENETUNREACH'
 ];
 
 const includes = (str, list) => {
