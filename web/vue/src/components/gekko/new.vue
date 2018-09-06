@@ -64,8 +64,7 @@ export default {
           .utc(this.existingMarketWatcher.events.initial.candle.start)
           .unix();
 
-        startAt = moment.unix(optimal).utc().format();
-        //startAt = moment.unix(Math.max(optimal, available)).utc().format();
+        startAt = moment.unix(Math.max(optimal, available)).utc().format();
       }
 
       const gekkoConfig = Vue.util.extend({
