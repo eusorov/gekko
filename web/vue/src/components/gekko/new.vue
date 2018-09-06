@@ -64,7 +64,8 @@ export default {
           .utc(this.existingMarketWatcher.events.initial.candle.start)
           .unix();
 
-        startAt = moment.unix(Math.max(optimal, available)).utc().format();
+        startAt = moment.unix(optimal).utc().format();
+        //startAt = moment.unix(Math.max(optimal, available)).utc().format();
       }
 
       const gekkoConfig = Vue.util.extend({
@@ -166,7 +167,7 @@ export default {
           // the specified market is already being watched,
           // just start a gekko!
           this.startGekko(this.routeToGekko);
-          
+
         } else {
           // the specified market is not yet being watched,
           // we need to create a watcher
