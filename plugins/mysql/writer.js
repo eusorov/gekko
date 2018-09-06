@@ -55,8 +55,9 @@ Store.prototype.writeCandles = function(cache) {
   if(_.isEmpty(cache)){
     return;
   }
-  console.log('mysql cache size:'+cache.length);
-  console.time('mysql_writing');
+
+  //log.debug('mysql write cache size:'+cache.length);
+
   //write as an array of candles for performance reasons
   const query = `INSERT INTO ${mysqlUtil.table('candles', this.watch)}
     (start, open, high,low, close, vwp, volume, trades)
@@ -67,8 +68,6 @@ Store.prototype.writeCandles = function(cache) {
 
   this.db.query(query, [candleArrays],  err => {
     if (err) console.log("Error while inserting candle: " + err);
-
-    console.timeEnd('mysql_writing');
   });
 };
 
@@ -101,7 +100,7 @@ Store.prototype.finalize = function(done) {
     return done();
   }
 
-  this.writeCandles();
+  this.writeCandles(this.cache);
   this.db = null;
   done();
 }

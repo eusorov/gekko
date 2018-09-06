@@ -5,10 +5,7 @@ var util = require('../../core/util.js');
 var config = util.getConfig();
 var dirs = util.dirs();
 
-var log = require(util.dirs().core + 'log');
-var myUtil = require('./util');
-
-var adapter = config.mysql;
+var log = require('../../core/log');
 
 // verify the correct dependencies are installed
 var pluginHelper = require(dirs.core + 'pluginUtil');
@@ -24,27 +21,19 @@ if(cannotLoad){
 
 var plugins = require(util.dirs().gekko + 'plugins');
 
-var version = adapter.version;
-
-var dbHost = myUtil.host;
-var dbName = myUtil.database;
-var dbUser = myUtil.user;
-var dbPass = myUtil.password;
-
 var database = mysql.createConnection({
-  host: dbHost,
-  user: dbUser,
-  password: dbPass,
-  database: dbName
+  host: config.mysql.host,
+  user: config.mysql.user,
+  password: config.mysql.password,
+  database: config.mysql.database,
 });
 
-var mode = util.gekkoMode();
-
 // Check if we could connect to the db
-database.connect(function(err) {
+database.connect((err) =>{
   if(err) {
     util.die(err);
   }
+
   log.debug("Verified MySQL setup: connection possible");
 });
 
