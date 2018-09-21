@@ -318,6 +318,15 @@ config.mongodb = {
   }]
 }
 
+config.mysql = {
+  path: 'plugins/mysql',
+  version: 0.1,
+  host: 'localhost',
+  database: 'dbname',
+  user: 'username',
+  password :'pass'
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                       CONFIGURING BACKTESTING
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
