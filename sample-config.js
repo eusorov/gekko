@@ -16,9 +16,9 @@ config.debug = true; // for additional logging / debugging
 config.watch = {
 
   // see https://gekko.wizb.it/docs/introduction/supported_exchanges.html
-  exchange: 'binance',
-  currency: 'USDT',
-  asset: 'BTC',
+  exchange: 'kraken',
+  currency: 'EUR',
+  asset: 'ETH',
 
   // You can set your own tickrate (refresh rate).
   // If you don't set it, the defaults are 2 sec for
@@ -30,13 +30,60 @@ config.watch = {
 //                       CONFIGURING TRADING ADVICE
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 config.tradingAdvisor = {
   enabled: true,
-  method: 'MACD',
+  method: 'RES_SUP',
   candleSize: 60,
   historySize: 10,
 }
 
+config.RES_SUP = {
+smaMiddle20 : {
+  parameters : {optInTimePeriod :20},
+  chart : {color : "black"}
+},
+smaMiddle20daily : {
+  parameters : {optInTimePeriod :120},
+  chart : {color : "black"}
+},
+smaMiddle60daily : {
+  parameters : {optInTimePeriod :120},
+  chart : {color : "blue"}
+},
+smaMiddle100daily : {
+  parameters : {optInTimePeriod :600},
+  chart : {color : "red"}
+},
+smaMiddle140daily : {
+  parameters : {optInTimePeriod :600},
+  chart : {color : "orange"}
+},
+smaMiddle180daily : {
+  parameters : {optInTimePeriod :600},
+  chart : {color : "red"}
+},
+smaMiddle220daily : {
+  parameters : {optInTimePeriod :600},
+  chart : {color : "blue"}
+},
+smaMiddle260daily : {
+  parameters : {optInTimePeriod :600},
+  chart : {color : "black"}
+},
+
+aroonosc : {
+  parameters : {optInTimePeriod :14},
+  chart : {showInExtraWindow : true,  type : "aroonosc" }
+},
+res_sup : {
+  nearSmaProcent : 2,
+  breakSmaProcent : 3,
+  breakSmaBullMarket : 140,
+  breakSmaBearMarket : 140
+}
+
+}
 // MACD settings:
 config.MACD = {
   // EMA weight (α)
@@ -335,11 +382,11 @@ config.mysql = {
 // @link: https://gekko.wizb.it/docs/commandline/backtesting.html
 
 config.backtest = {
-  daterange: 'scan',
-// daterange: {
-//   from: "2018-03-01",
-//   to: "2018-04-28"
-//},
+//  daterange: 'scan',
+ daterange: {
+   from: "2018-03-01",
+   to: "2018-05-28"
+},
   batchSize: 50
 }
 
