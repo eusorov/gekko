@@ -10,7 +10,12 @@ var Reader = require(dirs.gekko + adapter.path + '/reader');
 var daterange = config.backtest.daterange;
 
 var to = moment.utc(daterange.to);
-var from = moment.utc(daterange.from);
+var from = moment.utc(daterange.from,  "YYYY-MM-DD");
+
+//subtract history
+from = from.subtract((+config.tradingAdvisor.historySize)*(+config.tradingAdvisor.candleSize), "minutes");
+from.hours(0).minutes(0); // start always from 00:00
+
 
 if(to <= from)
   util.die('This daterange does not make sense.')

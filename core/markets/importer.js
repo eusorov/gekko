@@ -20,7 +20,6 @@ if(daterange.to) {
     to.format()
   );
 }
-log.debug(to.format());
 
 if(!from.isValid())
   util.die('invalid `from`');
@@ -74,7 +73,7 @@ var Market = function() {
   this.candleManager.on(
     'candles',
     this.pushCandles
-  );  
+  );
 
   Readable.call(this, {objectMode: true});
 

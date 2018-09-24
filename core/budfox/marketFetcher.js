@@ -77,6 +77,12 @@ Fetcher.prototype._fetch = function(since) {
 }
 
 Fetcher.prototype.fetch = function() {
+  if (this.fetching){
+    // already fetching, skip
+    return;
+  }
+  this.fetching = true;
+
   var since = false;
   if(this.firstFetch) {
     since = this.firstSince;
@@ -91,14 +97,17 @@ Fetcher.prototype.fetch = function() {
 
 Fetcher.prototype.processTrades = function(err, trades) {
   if(err || _.isEmpty(trades)) {
+    const interval = 2000 * this.tries * this.tries;
     if(err) {
       log.warn(this.exchange.name, 'returned an error while fetching trades:', err);
       log.debug('refetching...');
     } else
-      log.debug('Trade fetch came back empty, refetching...');
-    setTimeout(this._fetch, +moment.duration('s', 1));
+      log.debug('Trade fetch came back empty, refetching... interval: '+interval);
+    setTimeout(this._fetch, interval);
     return;
   }
+
+  this.fetching = false; // set here to false because we could fetch
   this.batcher.write(trades);
 }
 

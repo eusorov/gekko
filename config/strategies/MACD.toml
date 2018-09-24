@@ -1,8 +1,13 @@
+[macd.parameters]
 short = 10
 long = 21
 signal = 9
 
-[thresholds]
+[macd.thresholds]
 down = -0.025
 up = 0.025
 persistence = 1
+
+[macd.chart]
+showInExtraWindow = true
+type="macd"

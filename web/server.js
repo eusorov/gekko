@@ -99,6 +99,7 @@ router.post('/api/startGekko', require(ROUTE('startGekko')));
 router.post('/api/stopGekko', require(ROUTE('stopGekko')));
 router.post('/api/deleteGekko', require(ROUTE('deleteGekko')));
 router.post('/api/getCandles', require(ROUTE('getCandles')));
+router.post('/api/getIndicatorResults', require(ROUTE('getIndicatorResults')));
 
 
 // incoming WS:
@@ -137,3 +138,4 @@ server.listen(config.api.port, config.api.host, '::', () => {
     });
   }
 });
+

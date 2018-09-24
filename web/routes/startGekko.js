@@ -13,7 +13,18 @@ module.exports = function *() {
   const mode = this.request.body.mode;
 
   let config = {};
+  //console.log(this.request.body)
+  if(this.request.body.type === 'market watcher' && base.tradingAdvisor){
+    base.tradingAdvisor.enabled = false;
+    base.paperTrader.enabled = false;
+    base.performanceAnalyzer.enabled = false;
+    base.nodeipc.enabled = false;
+  }else if (this.request.body.type !== 'importer'){
+    base.tradingAdvisor.enabled = true;
+  }
 
+  //console.log("==================================== base ")
+  //console.log(base)
   _.merge(config, base, this.request.body);
 
   // Attach API keys

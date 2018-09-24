@@ -66,6 +66,9 @@ var Base = function(settings) {
   if(!this.onTrade)
     this.onTrade = function() {};
 
+  if(!this.updateOneMin) //get OneMinCandles!
+    this.updateOneMin = function() {};
+
   // let's run the implemented starting point
   this.init();
 
@@ -78,6 +81,10 @@ var Base = function(settings) {
     this.asyncTick = true;
   else
     delete this.asyncIndicatorRunner;
+
+  this.startTimeMinusCandleSize = startTime
+    .clone()
+    .subtract(this.tradingAdvisor.candleSize, "minutes");
 }
 
 // teach our base trading method events
@@ -142,13 +149,8 @@ Base.prototype.propogateTick = function(candle) {
     var isPremature = false;
 
     if(mode === 'realtime') {
-      const startTimeMinusCandleSize = startTime
-        .clone()
-        .subtract(this.tradingAdvisor.candleSize, "minutes");
-
-      isPremature = candle.start < startTimeMinusCandleSize;
+      isPremature = candle.start < this.startTimeMinusCandleSize; // wait in realtime at least one full candle to finish!
     }
-
     if(isAllowedToCheck && !isPremature) {
       this.completedWarmup = true;
       this.emit(
@@ -157,6 +159,8 @@ Base.prototype.propogateTick = function(candle) {
       );
     }
   }
+
+  console.log(this.requiredHistory + ' age:'+ this.age + 'isPremature:' + isPremature +' candle.start: '+candle.start.utc().format("YYYY-MM-DD HH:mm") + ' startTime:' + startTime.utc().format("YYYY-MM-DD HH:mm")+ ' ' +this.startTimeMinusCandleSize.format("YYYY-MM-DD HH:mm"))
 
   if(this.completedWarmup) {
     this.log(candle);
@@ -175,7 +179,7 @@ Base.prototype.propogateTick = function(candle) {
   _.each(this.indicators, (indicator, name) => {
     indicators[name] = indicator.result;
   });
-  
+
   _.each(this.tulipIndicators, (indicator, name) => {
     indicators[name] = indicator.result.result
       ? indicator.result.result

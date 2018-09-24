@@ -35,6 +35,17 @@ config.childToParent = {
   enabled: false,
 }
 
+config.strategyUpdateWriter = {
+  enabled: false,
+}
+
+config.nodeipc = {
+  enabled: false,
+  serverpath: '/tmp/tradingbot.myipcserver',
+  connectionid: 'tradingbot',
+  enableProcessAdvice: true  
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                       CONFIGURING ADAPTER
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,9 +92,9 @@ config.mysql = {
   path: 'plugins/mysql',
   version: 0.1,
   host: 'localhost',
-  database: 'dbname',
-  user: 'username',
-  password :'pass'
+  database: 'cryptodb',
+  user: 'crypto',
+  password :'123456'
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

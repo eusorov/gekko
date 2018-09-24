@@ -14,7 +14,7 @@ Indicator.prototype.update = function(price) {
   this.long.update(price);
   this.calculateEMAdiff();
   this.signal.update(this.diff);
-  this.result = this.diff - this.signal.result;
+  this.result = {macd: this.diff - this.signal.result, diff: this.diff, signal: this.signal.result};
 }
 
 Indicator.prototype.calculateEMAdiff = function() {

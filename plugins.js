@@ -229,7 +229,23 @@ var plugins = [
     async: false,
     modes: ['realtime'],
     greedy: true
-  }
+  },
+  {
+    name: 'NodeIPC',
+    description: 'Sends recommendations over node ipc.',
+    slug: 'nodeipc',
+    async: true,
+    silent: false,
+    modes: ['realtime']
+   },
+   {
+    name: 'Strategy update Writer',
+    description: 'Writes Indicators Results to DB.',
+    slug: 'strategyUpdateWriter',
+    async: true,
+    silent: false,
+    modes: ['realtime']
+   }
 ];
 
 module.exports = plugins;

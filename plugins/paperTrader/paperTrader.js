@@ -38,6 +38,8 @@ const PaperTrader = function() {
 
   this.propogatedTrades = 0;
   this.propogatedTriggers = 0;
+
+  this.shortcurrency = 0;
 }
 
 PaperTrader.prototype.relayPortfolioChange = function() {
@@ -97,6 +99,33 @@ PaperTrader.prototype.updatePosition = function(what) {
     this.trades++;
   }
 
+  // buy asset as short-leverage
+  else if(what === 'long bear') {
+    cost = (1 - this.fee) * this.portfolio.currency;
+    this.portfolio.asset += this.extractFee(this.portfolio.currency / this.price);
+    amount = this.portfolio.asset;
+
+    this.shortcurrency = this.portfolio.currency; // save the currency for short trade
+    this.portfolio.currency = 0;
+
+    this.exposed = true;
+    this.trades++;
+  }
+  // sell short-leverage
+  else if(what === 'short bear') {
+    const diffBear = this.shortcurrency - (this.portfolio.asset * this.price);
+
+    cost = (1 - this.fee) * (this.portfolio.asset * this.price);
+    this.portfolio.currency += this.shortcurrency + this.extractFee(diffBear);
+    amount = this.portfolio.currency / this.price;
+
+    this.shortcurrency = 0;
+    this.portfolio.asset = 0;
+
+    this.exposed = false;
+    this.trades++;
+  }
+
   const effectivePrice = this.price * this.fee;
 
   return { cost, amount, effectivePrice };
@@ -142,7 +171,37 @@ PaperTrader.prototype.processAdvice = function(advice) {
 
       this.createTrigger(advice);
     }
-  } else {
+  } else if(advice.recommendation === 'long bear') {
+    action = 'buy bear';
+
+    if(advice.trigger) {
+
+      // clean up potential old stop trigger
+      if(this.activeStopTrigger) {
+        this.deferredEmit('triggerAborted', {
+          id: this.activeStopTrigger.id,
+          date: advice.date
+        });
+
+        delete this.activeStopTrigger;
+      }
+
+      this.createTrigger(advice);
+    }
+  }else if(advice.recommendation === 'short bear') {
+    action = 'sell bear';
+
+    // clean up potential old stop trigger
+    if(this.activeStopTrigger) {
+      this.deferredEmit('triggerAborted', {
+        id: this.activeStopTrigger.id,
+        date: advice.date
+      });
+
+      delete this.activeStopTrigger;
+    }
+  }
+  else {
     return log.warn(
       `[Papertrader] ignoring unknown advice recommendation: ${advice.recommendation}`
     );

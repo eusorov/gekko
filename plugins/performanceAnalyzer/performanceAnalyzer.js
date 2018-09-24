@@ -32,7 +32,7 @@ const PerformanceAnalyzer = function() {
   this.trades = 0;
 
   this.exposure = 0;
-  
+
   this.roundTrips = [];
   this.losses = [];
   this.roundTrip = {
@@ -98,18 +98,31 @@ PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
 
   const report = this.calculateReportStatistics();
   if(report) {
-    this.logger.handleTrade(trade, report);
+
+    let roundtripProfit = 0;
+    if (trade.action.includes('sell')){
+      let roundtrip = this.roundTrips[this.roundTrip.id]
+      if (roundtrip){
+        roundtripProfit = roundtrip.pnl;
+      }
+      if (trade.adviceProps){
+        trade.adviceProps.roundtripProfit = roundtripProfit;
+      }
+    }
+
+    this.logger.handleTrade(trade, roundtripProfit);
     this.deferredEmit('performanceReport', report);
   }
 }
 
 PerformanceAnalyzer.prototype.registerRoundtripPart = function(trade) {
-  if(this.trades === 1 && trade.action === 'sell') {
+  if(this.trades === 1 && (trade.action === 'sell' || trade.action === 'sell bear') ) {
     // this is not part of a valid roundtrip
+    console.log("skippng :(")
     return;
   }
 
-  if(trade.action === 'buy') {
+  if(trade.action === 'buy' || trade.action === 'buy bear') {
     if (this.roundTrip.exit) {
       this.roundTrip.id++;
       this.roundTrip.exit = false
@@ -121,7 +134,7 @@ PerformanceAnalyzer.prototype.registerRoundtripPart = function(trade) {
       total: trade.portfolio.currency + (trade.portfolio.asset * trade.price),
     }
     this.openRoundTrip = true;
-  } else if(trade.action === 'sell') {
+  } else if(trade.action === 'sell' || trade.action === 'sell bear') {
     this.roundTrip.exit = {
       date: trade.date,
       price: trade.price,
@@ -162,7 +175,7 @@ PerformanceAnalyzer.prototype.handleCompletedRoundtrip = function() {
   // track losses separately for downside report
   if (roundtrip.exitBalance < roundtrip.entryBalance)
     this.losses.push(roundtrip);
-  
+
 }
 
 PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
@@ -180,13 +193,13 @@ PerformanceAnalyzer.prototype.calculateReportStatistics = function() {
   );
   const relativeProfit = this.balance / this.start.balance * 100 - 100;
   const relativeYearlyProfit = relativeProfit / timespan.asYears();
-  
+
   const percentExposure = this.exposure / (Date.parse(this.dates.end) - Date.parse(this.dates.start));
 
-  const sharpe = (relativeYearlyProfit - perfConfig.riskFreeReturn) 
-    / statslite.stdev(this.roundTrips.map(r => r.profit)) 
+  const sharpe = (relativeYearlyProfit - perfConfig.riskFreeReturn)
+    / statslite.stdev(this.roundTrips.map(r => r.profit))
     / Math.sqrt(this.trades / (this.trades - 2));
-  
+
   const downside = statslite.percentile(this.losses.map(r => r.profit), 0.25)
     * Math.sqrt(this.trades / (this.trades - 2));
 

@@ -1,6 +1,8 @@
 <template lang='pug'>
   div.contain.my2
     h3 Start a new gekko
+    h4 scanstate: 
+      span {{this.datasetScanstate}}
     gekko-config-builder(v-on:config='updateConfig')
     .hr
     .txt--center(v-if='config.valid')
@@ -15,6 +17,7 @@ import Vue from 'vue'
 import { post } from '../../tools/ajax'
 import gekkoConfigBuilder from './gekkoConfigBuilder.vue'
 import spinner from '../global/blockSpinner.vue'
+import dataset from '../global/mixins/dataset'
 
 export default {
   components: {
@@ -27,6 +30,7 @@ export default {
       config: {}
     }
   },
+  mixins: [ dataset ],
   computed: {
     gekkos: function() {
       return this.$store.state.gekkos;
@@ -58,13 +62,9 @@ export default {
         // without looking at the existing watcher
         const optimal = moment().utc().startOf('minute')
           .subtract(this.requiredHistoricalData, 'minutes')
-          .unix();
+          .hour(0).minute(0);          
 
-        const available = moment
-          .utc(this.existingMarketWatcher.events.initial.candle.start)
-          .unix();
-
-        startAt = moment.unix(Math.max(optimal, available)).utc().format();
+        startAt =  optimal.format();
       }
 
       const gekkoConfig = Vue.util.extend({
@@ -72,8 +72,12 @@ export default {
           type: 'leech',
           from: startAt
         },
-        mode: 'realtime'
+        mode: 'realtime',
+        strategyUpdateWriter : { enabled: "true"},
+        nodeipc : { enabled: "true"},
       }, this.config);
+
+      gekkoConfig.candleWriter.enabled  = false;
       return gekkoConfig;
     },
     existingMarketWatcher: function() {
@@ -122,8 +126,41 @@ export default {
     updateConfig: function(config) {
       this.config = config;
     },
-    start: function() {
+    checkAvailableHistoricalData: function() {
+    // if we have anough historical data, just start the gekko.
+      if (this.requiredHistoricalData){
+        this.pendingStratrunner = true;
+        const optimalUnix = moment().utc().startOf('minute')
+              .subtract(this.requiredHistoricalData, 'minutes')
+              .hour(0).minute(0)
+              .unix();
+              
+        const nowUnix = moment().utc().startOf('minute').subtract(4, 'hours').unix(); // allow max 4hours hole in our data, because we can get this from exchange
 
+        return new Promise((resolve, reject)=> {
+          this.scanDateRange(this.config, (sets)=> {
+          // 
+          //console.log(sets);
+          const setAvailable = sets.filter((set) => {
+            //console.log((moment.unix(set.from).format()) + ' ' +moment.unix(optimalUnix).format()+ ' ' + moment.unix(set.to).format() +' '+ moment.unix(nowUnix).format());
+            if((moment.unix(set.from)) <= moment.unix(optimalUnix) && moment.unix(set.to) >= moment.unix(nowUnix)){
+              return true;
+            }
+          })
+
+          if (setAvailable.length === 0){
+              // promt enough historcal data!
+            alert('You dont have enough historical data. Import first more data from exchange since: '+moment.unix(optimalUnix).format("YYYY-MM-DD"));
+            reject();
+          }else{
+            console.log("alles super!")
+            resolve();
+          }
+          });
+        })
+      }
+    },
+    start: function() {
       // if the user starts a tradebot we do some
       // checks first.
       if(this.config.type === 'tradebot') {
@@ -145,7 +182,7 @@ export default {
       // however if the user selected type "market watcher"
       // the second part won't be created
       if(this.config.type === 'market watcher') {
-
+       
         // check if the specified market is already being watched
         if(this.existingMarketWatcher) {
           alert('This market is already being watched, redirecting you now...');
@@ -161,21 +198,23 @@ export default {
         }
 
       } else {
+        this.checkAvailableHistoricalData().then((result)=>{
+          if(this.existingMarketWatcher) {
+            // the specified market is already being watched,
+            // just start a gekko!
 
-        if(this.existingMarketWatcher) {
-          // the specified market is already being watched,
-          // just start a gekko!
-          this.startGekko(this.routeToGekko);
-
-        } else {
-          // the specified market is not yet being watched,
-          // we need to create a watcher
-          this.startWatcher((err, resp) => {
-            this.pendingStratrunner = resp.id;
-            // now we just wait for the watcher to be properly initialized
-            // (see the `watch.existingMarketWatcher` method)
-          });
-        }
+          } else {
+            // the specified market is not yet being watched,
+            // we need to create a watcher
+            this.startWatcher((err, resp) => {
+              this.pendingStratrunner = resp.id;
+              // now we just wait for the watcher to be properly initialized
+              // (see the `watch.existingMarketWatcher` method)
+            });
+            /*
+            */
+          }
+        }).catch(()=> this.pendingStratrunner = false);
       }
     },
     routeToGekko: function(err, resp) {

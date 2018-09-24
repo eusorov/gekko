@@ -5,6 +5,12 @@
   also print out everything send to debug.
 
 */
+var winston = require('winston');
+const { format } = winston;
+const { combine, timestamp, label, printf } = format;
+
+const SentryTransport = require('./logstransport/sentry_transport');
+const LogzTransport = require('./logstransport/logz_transport');
 
 var moment = require('moment');
 var fmt = require('util').format;
@@ -13,6 +19,39 @@ var util = require('./util');
 var config = util.getConfig();
 var debug = config.debug;
 var silent = config.silent;
+
+const winstonLogger = winston.createLogger({
+  transports: [
+
+    new winston.transports.File({
+      name : 'filelogger',
+      filename: 'logs/all-gekko.log',
+      level: 'info',
+      handleExceptions: false,
+      json: false,
+      maxsize: 10242880, //10MB
+      maxFiles: 5,
+      colorize: false,
+      format: winston.format.printf(info =>`${info.timestamp} ${info.level}: ${info.message}`)
+    }),
+
+    // send only errors to Sentry (good library for errors fixing)
+
+    new SentryTransport({
+       token : process.env.SENTRY_DSN,
+       level: 'error'
+    }),
+
+    /*
+    new LogzTransport({
+      token: process.env.LOGZ_KEY,
+      host: 'listener.logz.io',
+      type: 'gekko',
+      level: 'error'
+    }),
+    */
+  ]
+});
 
 var sendToParent = function() {
   var send = method => (...args) => {
@@ -46,6 +85,8 @@ Log.prototype = {
     message += ' (' + name + '):\t';
     message += fmt.apply(null, args);
 
+    console.log(message);
+    winstonLogger.log(method, message);
     this.output[method](message);
   },
   error: function() {
@@ -66,7 +107,7 @@ Log.prototype = {
 
 if(debug)
   Log.prototype.debug = function() {
-    this._write('info', arguments, 'DEBUG');  
+    this._write('info', arguments, 'DEBUG');
   }
 else
   Log.prototype.debug = _.noop;

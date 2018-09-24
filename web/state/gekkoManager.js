@@ -63,6 +63,8 @@ GekkoManager.prototype.add = function({mode, config}) {
 
   this.loggers[id] = new Logger(id);
 
+  config.gekko_id = id; // pass id to the backend;
+
   // start the actual instance
   this.instances[id] = pipelineRunner(mode, config, this.handleRawEvent(id));
 

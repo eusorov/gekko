@@ -26,11 +26,12 @@ const error = exchangeChecker.cantMonitor(config.watch);
 if(error)
   util.die(error, true);
 
-if(config.market.from)
-  var fromTs = moment.utc(config.market.from).unix();
+if(config.market.from){
+  //always start from 00:00
+  var fromTs = moment.utc(config.market.from).hours(0).minutes(0).unix();
+}
 else
-  var fromTs = moment().startOf('minute').unix();
-
+  var fromTs = moment().startOf('minute').utc().unix();
 
 var Market = function() {
 
@@ -58,7 +59,6 @@ Market.prototype._read = _.once(function() {
 
 Market.prototype.get = function() {
   var future = moment().add(1, 'minute').unix();
-
   this.reader.get(
     this.latestTs,
     future,

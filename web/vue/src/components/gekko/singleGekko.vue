@@ -31,10 +31,10 @@
             template(v-if='!isLoading')
               .grd-row(v-if='initialEvents.candle')
                 .grd-row-col-2-6 Watching since
-                .grd-row-col-4-6 {{ fmt(initialEvents.candle.start) }}
+                .grd-row-col-4-6 {{ fmt(initialEvents.candle.start) }} UTC
               .grd-row(v-if='latestEvents.candle')
                 .grd-row-col-2-6 Received data until
-                .grd-row-col-4-6 {{ fmt(latestEvents.candle.start) }}
+                .grd-row-col-4-6 {{ fmt(latestEvents.candle.start) }} UTC
               .grd-row(v-if='latestEvents.candle')
                 .grd-row-col-2-6 Data spanning
                 .grd-row-col-4-6 {{ humanizeDuration(moment(latestEvents.candle.start).diff(moment(initialEvents.candle.start))) }}
@@ -98,7 +98,7 @@
         h3.contain Market graph
         spinner(v-if='candleFetch === "fetching"')
         template(v-if='candleFetch === "fetched"')
-          chart(:data='chartData', :height='300')
+          chart(:data='chartData', :height='300', :config = "{tradingAdvisor: config.tradingAdvisor , [stratName] : data.config[stratName]} " )
         roundtrips(v-if='isStratrunner', :roundtrips='roundtrips')
 </template>
 
@@ -128,7 +128,8 @@ export default {
   data: () => {
     return {
       candleFetch: 'idle',
-      candles: false
+      candles: [],
+      indicatorResults: []
     }
   },
   computed: {
@@ -161,7 +162,8 @@ export default {
       return _.get(this, 'data.events.initial');
     },
     trades: function() {
-      return _.get(this, 'data.events.tradeCompleted') || [];
+      const _trades = _.get(this, 'data.events.tradeCompleted') || [];
+      return _trades.map((t)=> { return {...t, date : moment(t.date).unix()}});
     },
     roundtrips: function() {
       return _.get(this, 'data.events.roundtrip') || [];
@@ -201,17 +203,23 @@ export default {
         return false;
       }
 
-      const warmupTime = _.get(this.config, 'tradingAdvisor.candleSize') * historySize;
+      if (!this.latestEvents.stratCandle){
+        return false;
+      }
+
+      const shouldStartAt = moment.utc(this.latestEvents.stratCandle.start).add(_.get(this.config, 'tradingAdvisor.candleSize')*2, "m");
+      const diffToStart = shouldStartAt.diff(moment().utc());
 
       return humanizeDuration(
-        moment(this.initialEvents.candle.start).add(warmupTime, 'm').diff(moment()),
+        diffToStart,
         { largest: 2 }
       );
     },
     chartData: function() {
       return {
-        candles: this.candles,
-        trades: this.trades
+        stratCandles: this.candles,
+        trades: this.trades,
+        stratUpdates: this.indicatorResults
       }
     },
     report: function() {
@@ -272,9 +280,9 @@ export default {
     }
   },
   watch: {
-    'data.events.latest.candle.start': function() {
-      setTimeout(this.getCandles, _.random(100, 2000));
-    }
+    // 'data.events.latest.candle.start': function() {
+    //  // setTimeout(this.getCandles, 180000); // we dont want update every 5sec
+    // }
   },
   methods: {
     round: n => (+n).toFixed(5),
@@ -318,12 +326,28 @@ export default {
           if(!res || res.error || !_.isArray(res))
             return console.log(res);
 
-          this.candles = res.map(c => {
-            c.start = moment.unix(c.start).utc().format();
-            return c;
-          });
+          this.candles = res;
         })
       }, _.random(150, 2500));
+
+      config.gekko_id = this.data.id;
+      
+      post('getIndicatorResults', config, (err, res) => {
+        if(!res || res.error || !_.isArray(res))
+          console.log(res);
+
+        // convert back unix to string format
+        // later in techan.js we convert string format toDate.
+        // const indicatorResults = {};
+        // _.each(res, (indicatorResult, name) => {
+        //   indicatorResults[name] = indicatorResult.map(iresult => {
+        //     return {date : moment.unix(iresult.date).utc().format(), result: iresult.result};
+        //   })
+        // });
+
+        this.indicatorResults = res;
+      })
+      /**/      
     },
     stopGekko: function() {
       if(this.hasLeechers) {

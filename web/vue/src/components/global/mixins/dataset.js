@@ -9,6 +9,14 @@ var mixin = {
     }    
   },
   methods: {
+    scanDateRange: function(config, callback){
+      post('scan', config, (error, response) => {
+        if (error) return callback([]);
+
+        let sets = response;
+        callback(sets);
+      });
+    },
     scan: function() {
       this.datasetScanstate = 'scanning';
 
@@ -33,10 +41,11 @@ var mixin = {
         });
 
         // for now, filter out sets smaller than 3 hours..
-        sets = sets.filter(set => {
-          if(set.to.diff(set.from, 'hours') > 2)
-            return true;
-        });
+        // disable, because I want to see all ranges available in DB
+        // sets = sets.filter(set => {
+        //   if(set.to.diff(set.from, 'hours') > 2)
+        //     return true;
+        // });
 
         sets = sets.sort((a, b) => {
           let adiff = a.to.diff(a.from);

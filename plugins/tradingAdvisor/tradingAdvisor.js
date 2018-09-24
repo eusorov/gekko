@@ -86,7 +86,12 @@ Actor.prototype.setupStrategy = function() {
 // HANDLERS
 // process the 1m candles
 Actor.prototype.processCandle = function(candle, done) {
+
   this.candle = candle;
+
+  // notify strategy about one min
+  this.strategy.updateOneMin(candle);
+
   const completedBatch = this.batcher.write([candle]);
   if(completedBatch) {
     this.next = done;

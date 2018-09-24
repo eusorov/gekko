@@ -53,35 +53,35 @@ Logger.prototype.logRoundtrip = function(rt) {
   log.info('(ROUNDTRIP)', display.join('\t'));
 }
 
-if(mode === 'backtest') {
   // we only want to log a summarized one line report, like:
   // 2016-12-19 20:12:00: Paper trader simulated a BUY 0.000 USDT => 1.098 BTC
-  Logger.prototype.handleTrade = function(trade) {
-    if(trade.action !== 'sell' && trade.action !== 'buy')
+  Logger.prototype.handleTrade = function(trade, roundtripProfit) {
+    if(trade.action !== 'sell' && trade.action !== 'buy' && trade.action !== 'sell bear' && trade.action !== 'buy bear')
       return;
 
     var at = trade.date.format('YYYY-MM-DD HH:mm:ss');
 
-
-    if(trade.action === 'sell')
+    if(trade.action === 'sell'  || trade.action === 'sell bear')
 
         log.info(
-          `${at}: Paper trader simulated a SELL`,
+          `${at}: Paper trader simulated a ${trade.action}`,
           `\t${this.round(trade.portfolio.currency)}`,
           `${this.currency} <= ${this.round(trade.portfolio.asset)}`,
-          `${this.asset}`
+          `${this.asset}`,
+          `\t${roundtripProfit.toFixed(2)}`
         );
 
-    else if(trade.action === 'buy')
+    else if(trade.action === 'buy'  || trade.action === 'buy bear')
 
       log.info(
-        `${at}: Paper trader simulated a BUY`,
+        `${at}: Paper trader simulated a ${trade.action}`,
         `\t${this.round(trade.portfolio.currency)}`,
         `${this.currency}\t=> ${this.round(trade.portfolio.asset)}`,
         `${this.asset}`
       );
   }
 
+if(mode === 'backtest') {
   Logger.prototype.finalize = function(report) {
 
     log.info();
@@ -108,17 +108,17 @@ if(mode === 'backtest') {
       `(PROFIT REPORT) simulated yearly profit:\t ${report.yearlyProfit}`,
       `${this.currency} (${report.relativeYearlyProfit}%)`
     );
-  
+
     log.info(`(PROFIT REPORT) sharpe ratio:\t\t\t ${report.sharpe}`);
     log.info(`(PROFIT REPORT) expected downside:\t\t ${report.downside}`);
   }
-  
+
   Logger.prototype.handleRoundtrip = function(rt) {
     this.roundtrips.push(rt);
   }
 
 } else if(mode === 'realtime') {
-  Logger.prototype.handleTrade = Logger.prototype.logReport;
+  //Logger.prototype.handleTrade = Logger.prototype.logReport;
 
   Logger.prototype.handleRoundtrip = function(rt) {
     this.logRoundtripHeading();

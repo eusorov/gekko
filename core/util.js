@@ -5,7 +5,7 @@ var fs = require('fs');
 var semver = require('semver');
 var program = require('commander');
 
-var startTime = moment();
+var startTime = moment().utc();
 
 var _config = false;
 var _package = false;

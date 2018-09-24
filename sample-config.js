@@ -281,7 +281,7 @@ config.backtestResultExporter = {
 //                       CONFIGURING ADAPTER
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-config.adapter = 'sqlite';
+config.adapter = 'mysql';
 
 config.sqlite = {
   path: 'plugins/sqlite',
@@ -322,9 +322,9 @@ config.mysql = {
   path: 'plugins/mysql',
   version: 0.1,
   host: 'localhost',
-  database: 'dbname',
-  user: 'username',
-  password :'pass'
+  database: 'cryptodb',
+  user: 'crypto',
+  password :'123456'
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

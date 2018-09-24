@@ -19,7 +19,7 @@ const Trader = function(config) {
 
   this.name = 'kraken';
   this.since = null;
-  
+
   this.market = _.find(Trader.getCapabilities().markets, (market) => {
     return market.pair[0] === this.currency && market.pair[1] === this.asset
   });
@@ -184,6 +184,7 @@ Trader.prototype.getTrades = function(since, callback, descending) {
   const handle = (err, trades) => {
     if (err) return callback(err);
 
+    this.lastid = trades.result.last;
     var parsedTrades = [];
     _.each(trades.result[this.pair], function(trade) {
       // Even when you supply 'since' you can still get more trades than you asked for, it needs to be filtered
@@ -210,6 +211,8 @@ Trader.prototype.getTrades = function(since, callback, descending) {
   if(since) {
     // Kraken wants a tid, which is found to be timestamp_ms * 1000000 in practice. No clear documentation on this though
     reqData.since = startTs * 1000000;
+  }else if (this.lastid){
+    reqData.since = this.lastid;
   }
 
   const fetch = cb => this.kraken.api('Trades', reqData, this.handleResponse('getTrades', cb, true));
