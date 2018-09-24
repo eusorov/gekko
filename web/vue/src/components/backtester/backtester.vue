@@ -9,7 +9,7 @@
         div(v-if='backtestState === "fetching"').scan-btn
           p Running backtest..
           spinner
-    result(v-if='backtestResult && backtestState === "fetched"', :result='backtestResult')
+    result(v-if='backtestResult && backtestState === "fetched"', :result='backtestResult', :config='config')
 </template>
 
 <script>
@@ -42,6 +42,7 @@ export default {
 
       post('backtest', this.config, (error, response) => {
         this.backtestState = 'fetched';
+        console.log(response);
         this.backtestResult = response;
       });
     }

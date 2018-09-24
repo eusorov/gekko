@@ -24,7 +24,7 @@ config.backtestResultExporter = {
   enabled: false,
   writeToDisk: false,
   data: {
-    stratUpdates: false,
+    stratUpdates: true,
     roundtrips: true,
     stratCandles: true,
     trades: true
@@ -43,7 +43,7 @@ config.nodeipc = {
   enabled: false,
   serverpath: '/tmp/tradingbot.myipcserver',
   connectionid: 'tradingbot',
-  enableProcessAdvice: true  
+  enableProcessAdvice: true
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

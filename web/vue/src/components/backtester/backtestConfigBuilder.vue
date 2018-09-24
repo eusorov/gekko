@@ -71,10 +71,11 @@ export default {
             enabled: true,
             writeToDisk: false,
             data: {
-              stratUpdates: false,
+              stratUpdates: true,
               roundtrips: true,
               stratCandles: true,
-              stratCandleProps: ['open'],
+              stratCandleProps: ['open', 'high', 'low','close','volume'],
+
               trades: true
             }
           }
