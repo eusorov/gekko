@@ -47,27 +47,40 @@ Store.prototype.upsertTables = function() {
   var next = _.after(_.size(createQueries), this.done);
 
   _.each(createQueries, function(q) {
-    this.db.query(q,next);
+      this.db.query(q, (err, results) => {
+        next(err, results);
+      });
   }, this);
 }
 
-Store.prototype.writeCandles = function(cache) {
+Store.prototype.writeCandles = function(cache, done) {
   if(_.isEmpty(cache)){
     return;
   }
 
-  //log.debug('mysql write cache size:'+cache.length);
+  if (done == undefined){
+    done = () => {};
+  }
 
   //write as an array of candles for performance reasons
-  const query = `INSERT INTO ${mysqlUtil.table('candles', this.watch)}
+  const queryStr = `INSERT INTO ${mysqlUtil.table('candles', this.watch)}
     (start, open, high,low, close, vwp, volume, trades)
     VALUES ? ON DUPLICATE KEY UPDATE start = start`;
+
+  log.debug(`writing: ${config.watch.currency} ${config.watch.asset} \
+    ${_.first(cache).start.utc().format("YYYY-MM-DD HH:mm:ss")}\
+    ${_.last(cache).start.utc().format("YYYY-MM-DD HH:mm:ss")}`);
 
   const candleArrays = cache.map(
     (c)=> [c.start.unix(), c.open, c.high, c.low, c.close, c.vwp, c.volume, c.trades]);
 
-  this.db.query(query, [candleArrays],  err => {
-    if (err) console.log("Error while inserting candle: " + err);
+  this.db.query(queryStr, [candleArrays],  err => {
+      if (err) {
+        log.error(err);
+        return done();
+      }
+
+      done();
   });
 };
 
@@ -87,7 +100,6 @@ Store.prototype.processCandle = function(candle, done) {
 
   this.cache.push(candle);
   if (this.cache.length > 1000){ //always cache candles
-    console.log(this.cache.length);
     this.writeCandles(this.cache); //pass cache to mysql and clear
     this.cache = [];
   }
@@ -100,9 +112,10 @@ Store.prototype.finalize = function(done) {
     return done();
   }
 
-  this.writeCandles(this.cache);
-  this.db = null;
-  done();
+  // call done only after writing is done
+  this.writeCandles(this.cache, () => {
+    done();
+  });
 }
 
 module.exports = Store;

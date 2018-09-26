@@ -21,20 +21,19 @@ if(cannotLoad){
 
 var plugins = require(util.dirs().gekko + 'plugins');
 
-var database = mysql.createConnection({
+var database = mysql.createPool({
   host: config.mysql.host,
   user: config.mysql.user,
   password: config.mysql.password,
   database: config.mysql.database,
 });
 
-// Check if we could connect to the db
-database.connect((err) =>{
+database.getConnection((err, connection) =>{
   if(err) {
     util.die(err);
   }
-
   log.debug("Verified MySQL setup: connection possible");
-});
+  connection.release();
+})
 
 module.exports = database;
