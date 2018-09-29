@@ -252,7 +252,7 @@ PaperTrader.prototype.createTrigger = function(advice) {
     this.deferredEmit('triggerCreated', {
       id: triggerId,
       at: advice.date,
-      type: 'trialingStop',
+      type: 'trailingStop',
       proprties: {
         trail: trigger.trailValue,
         initialPrice: this.price,
