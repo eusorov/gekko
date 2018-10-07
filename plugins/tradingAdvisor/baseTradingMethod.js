@@ -69,7 +69,7 @@ var Base = function(settings) {
   this.init();
 
   //if no requiredHistory was provided, set default from tradingAdvisor
-  if (!this.requiredHistory){
+  if (!_.isNumber(this.requiredHistory)){
     this.requiredHistory = config.tradingAdvisor.historySize;
   }
 
