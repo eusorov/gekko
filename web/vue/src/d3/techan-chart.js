@@ -22,7 +22,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
         indicator: { height: 100, padding: 5 }
     };
     dim.plot = {
-        width: dim.width - dim.margin.left - dim.margin.right,       
+        width: dim.width - dim.margin.left - dim.margin.right,
     };
     dim.indicator.top = dim.ohlc.height+dim.indicator.padding;
     dim.indicator.bottom = dim.indicator.top+dim.indicator.height+dim.indicator.padding;
@@ -72,7 +72,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
     let indicatorsEmbedded = {};
     let indicatorData = {};
     let indicatorsExtraPlot = [];
-    
+
     _indicatorResults.forEach((res) => {
         _.each(res.indicators, (val, name)=> {
            indicatorData[name] = indicatorData[name] ? indicatorData[name] : [];
@@ -93,7 +93,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
             }
             const offset = moment.unix(res.date).toDate().getTimezoneOffset();
             let result = {date: moment.unix(res.date).add(offset, "m").toDate()};
-            
+
             if (configChart && configChart.type === "stochastic"){
                     result.middle = 50;
                     result.overbought = configIndicators[name].thresholds.up;
@@ -123,7 +123,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
             }
 
             indicatorData[name].push(result);
-        });            
+        });
     });
 
     dim.height = (555 + (indicatorsExtraPlot.length *105));
@@ -193,7 +193,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
     indicator.scale = scale;
 
     let plotName = getPlotName(indicator.config.type);
-        
+
     var plot = techan.plot[plotName]()
             .xScale(x)
             .yScale(scale);
@@ -238,28 +238,28 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
 // show indicator values
 //     var bollingerBandsScale = d3.scaleLinear()
 //           .range([indicatorTop(4)+dim.indicator.height, indicatorTop(4)]);
-  
+
 //     var bollingerBands = techan.plot.bollinger()
 //             .xScale(x)
 //             .yScale(bollingerBandsScale);
-  
+
 //     var bollingerBandsAxis = d3.axisRight(bollingerBandsScale)
 //             .ticks(3);
-  
+
 //     var bollingerBandsAnnotation = techan.plot.axisannotation()
 //             .axis(bollingerBandsAxis)
 //             .orient("right")
 //             .format(d3.format(',.2f'))
 //             .translate([x(1), 0]);
-  
+
 //     var bollingerBandsAxisLeft = d3.axisLeft(bollingerBandsScale)
 //             .ticks(3);
-  
+
 //     var bollingerBandsAnnotationLeft = techan.plot.axisannotation()
 //             .axis(bollingerBandsAxisLeft)
 //             .orient("left")
 //             .format(d3.format(',.2f'));
-  
+
 //   var bollingerBandsCrosshair = techan.plot.crosshair()
 //         .xScale(timeAnnotation.axis().scale())
 //         .yScale(bollingerBandsAnnotation.axis().scale())
@@ -445,7 +445,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
     var bisectDate = d3.bisector(accessor.d).left; // accessor.d is equal to function(d) { return d.date; };
 
 
-    let data = _data.map( d => {        
+    let data = _data.map( d => {
         //techan works only with Date but we have UTC date. We need shift the date bei x minutes from offset
         const offset = moment.unix(d.start).toDate().getTimezoneOffset();
         return {
@@ -462,13 +462,13 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
     y.domain(techan.scale.plot.ohlc(data.slice(indicatorPreRoll)).domain());
     yPercent.domain(techan.scale.plot.percent(y, accessor(data[indicatorPreRoll])).domain());
     yVolume.domain(techan.scale.plot.volume(data).domain());
-    
+
     let candleSize = 0;
     if (_config && _config.tradingAdvisor){
         candleSize = (+_config.tradingAdvisor.candleSize); //match candles dates to trades!
     }
 
-    let trades = _trades.map( t => {          
+    let trades = _trades.map( t => {
         let trade = _.pick(t, ['price']);
         trade.quantity = 1;
         trade.type = t.action; // .includes('buy') ? 'buy' : 'sell';
@@ -478,14 +478,14 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
          utcDate.minutes(0);
         }else{
            // subract the remainder so, we allign the arrow with the candle
-           utcDate.subtract(utcDate.minutes % candleSize, "m"); 
+           utcDate.subtract(utcDate.minutes % candleSize, "m");
         }
-        trade.date = utcDate.toDate();  
+        trade.date = utcDate.toDate();
         trade.dateoriginal = t.date;
         trade.high = trade.price;
         trade.low = trade.price;
-        trade.adviceProps = t.adviceProps;  
-        // console.log((moment.unix(t.date)).utc().format("YYYY-MM-DD HH:mm") + ' '+trade.date  + ' '+(offset))                  
+        trade.adviceProps = t.adviceProps;
+        // console.log((moment.unix(t.date)).utc().format("YYYY-MM-DD HH:mm") + ' '+trade.date  + ' '+(offset))
         return trade;
     });
 
@@ -528,9 +528,6 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
 
     function zoomed() {
         let xzoomalbe = d3.event.transform.rescaleX(zoomableInit).domain();
-        if (window.event.shiftKey !== true){
-           x.zoomable().domain(xzoomalbe);
-        }
 
         y.domain(d3.event.transform.rescaleY(yInit).domain());
         yPercent.domain(d3.event.transform.rescaleY(yPercentInit).domain());
@@ -568,14 +565,8 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
         let i = bisectDate(data, coords.x); //get closest index
         let candle = data[i];
         _.each(indicatorsEmbedded, (indicator, name) => {
-           let longerPeriod;
-           if (configIndicators[name].parameters.candleSize){
-               longerPeriod = Math.round(i/(+configIndicators[name].parameters.candleSize))
-            }
             let value="";
-            if (indicatorData[name][longerPeriod]){
-               value = indicatorData[name][longerPeriod].value
-            }else if (indicatorData[name][i]){
+            if (indicatorData[name][i]){
                value = indicatorData[name][i].value
             }
             indicatorLabels[name].text(name +": "+ ohlcAnnotation.format()(value));
@@ -583,13 +574,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
 
         indicatorsExtraPlot.forEach(indicator => {
           let result = {};
-          let longerPeriod;
-          if (configIndicators[indicator.name].parameters.candleSize){
-              longerPeriod = Math.round(i/(+configIndicators[indicator.name].parameters.candleSize))
-           }
-          if (indicatorData[indicator.name][longerPeriod]){
-            result = indicatorData[indicator.name][longerPeriod];
-          }else if (indicatorData[indicator.name][i]){
+          if (indicatorData[indicator.name][i]){
             result = indicatorData[indicator.name][i];
           }
 
@@ -635,7 +620,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
         let text = "";
         if (d.adviceProps){
                 const valueEntries = Object.entries(d.adviceProps);
-                
+
                 valueEntries.forEach(v => {
                         if (v[0]!== "date" && v[0]!== "type")
                         text += v[0] + ": "+ohlcAnnotation.format()(v[1]) + " ";

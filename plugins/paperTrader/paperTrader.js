@@ -234,7 +234,8 @@ PaperTrader.prototype.processAdvice = function(advice) {
     balance: this.getBalance(),
     date: advice.date,
     effectivePrice,
-    feePercent: this.rawFee
+    feePercent: this.rawFee,
+    adviceProps: advice.adviceProps
   });
 }
 
@@ -252,7 +253,7 @@ PaperTrader.prototype.createTrigger = function(advice) {
     this.deferredEmit('triggerCreated', {
       id: triggerId,
       at: advice.date,
-      type: 'trailingStop',
+      type: 'trialingStop',
       proprties: {
         trail: trigger.trailValue,
         initialPrice: this.price,

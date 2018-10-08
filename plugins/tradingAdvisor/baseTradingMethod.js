@@ -37,7 +37,6 @@ var Base = function(settings) {
   this.settings = settings;
   this.tradingAdvisor = config.tradingAdvisor;
   // defaults
-  this.requiredHistory = 0;
   this.priceValue = 'close';
   this.indicators = {};
   this.asyncTick = false;
@@ -71,6 +70,10 @@ var Base = function(settings) {
 
   // let's run the implemented starting point
   this.init();
+  if (!_.isNumber(this.requiredHistory)){
+    this.requiredHistory = config.tradingAdvisor.historySize;
+  }
+
 
   if(!config.debug || !this.log)
     this.log = function() {};
@@ -160,8 +163,6 @@ Base.prototype.propogateTick = function(candle) {
     }
   }
 
-  console.log(this.requiredHistory + ' age:'+ this.age + 'isPremature:' + isPremature +' candle.start: '+candle.start.utc().format("YYYY-MM-DD HH:mm") + ' startTime:' + startTime.utc().format("YYYY-MM-DD HH:mm")+ ' ' +this.startTimeMinusCandleSize.format("YYYY-MM-DD HH:mm"))
-
   if(this.completedWarmup) {
     this.log(candle);
     this.check(candle);
@@ -238,7 +239,7 @@ Base.prototype.addIndicator = function(name, type, parameters) {
   // some indicators need a price stream, others need full candles
 }
 
-Base.prototype.advice = function(newDirection) {
+Base.prototype.advice = function(newDirection,  _candle, adviceProps) {
   // ignore legacy soft advice
   if(!newDirection) {
     return;
@@ -290,7 +291,8 @@ Base.prototype.advice = function(newDirection) {
 
   const advice = {
     id: 'advice-' + this.propogatedAdvices,
-    recommendation: newDirection
+    recommendation: newDirection,
+    adviceProps : adviceProps
   };
 
   if(trigger) {
