@@ -528,7 +528,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
 
     function zoomed() {
         let xzoomalbe = d3.event.transform.rescaleX(zoomableInit).domain();
-
+        x.zoomable().domain(xzoomalbe);
         y.domain(d3.event.transform.rescaleY(yInit).domain());
         yPercent.domain(d3.event.transform.rescaleY(yPercentInit).domain());
 
