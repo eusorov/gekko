@@ -23,6 +23,23 @@ const cache = require('./state/cache');
 const nodeCommand = _.last(process.argv[1].split('/'));
 const isDevServer = nodeCommand === 'server' || nodeCommand === 'server.js';
 
+var winston = require('winston');
+const log = winston.createLogger({
+  transports: [
+
+    new winston.transports.File({
+      name : 'filelogger',
+      filename: '../logs/server.log',
+      level: 'info',
+      handleExceptions: false,
+      json: false,
+      maxsize: 10242880, //10MB
+      maxFiles: 5,
+      colorize: false,
+    }),
+  ]
+});
+
 wss.on('connection', ws => {
   ws.isAlive = true;
   ws.on('pong', () => {
@@ -129,7 +146,7 @@ server.listen({port : process.env.PORT} , () => {
     var location = `http://${host}`;
   }
 
-  console.log('Serving Gekko UI on ' + location +  '\n');
+  log.info('Serving Gekko UI on ' + location +  '\n');
 
 
   // only open a browser when running `node gekko`
