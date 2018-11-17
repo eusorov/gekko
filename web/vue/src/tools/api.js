@@ -1,7 +1,7 @@
 // global window.CONFIG
 
 const config = window.CONFIG.ui;
-const endpoint = `${config.host}`;
+const endpoint = `${process.env.HOST}`;
 
 let basePath, restPath, wsPath;
 
@@ -10,20 +10,20 @@ if(config.ssl) {
   basePath = `https://${endpoint}`;
 } else {
   if (process.env.NODE_ENV==="production"){
-    basePath = `http://${config.host}${config.path}`;
+    basePath = `http://${process.env.HOST}${config.path}`;
   }else{
-    basePath = `http://${config.host}:${config.port}${config.path}`;
+    basePath = `http://${process.env.HOST}:${process.env.PORT}${config.path}`;
   }
 }
 restPath = basePath + 'api/';
 // ws API path
 if(config.ssl) {
-  wsPath = `wss://${config.host}${config.path}api`;
+  wsPath = `wss://${process.env.HOST}${config.path}api`;
 } else {
   if (process.env.NODE_ENV==="production"){
-    wsPath = `ws://${config.host}${config.path}api`;
+    wsPath = `ws://${process.env.HOST}${config.path}api`;
   }else{
-    wsPath = `ws://${config.host}:${config.port}${config.path}api`;
+    wsPath = `ws://${process.env.HOST}:${process.env.PORT}${config.path}api`;
   }
 }
 

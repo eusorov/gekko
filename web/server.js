@@ -1,3 +1,6 @@
+const dotenv = require("dotenv");
+dotenv.config({ path: ".env" });
+
 const config = require('./vue/dist/UIconfig');
 
 const koa = require('koa');
@@ -117,8 +120,8 @@ app
 
 server.timeout = config.api.timeout || 120000;
 server.on('request', app.callback());
-server.listen({port : config.api.port} , () => {
-  const host = `${config.ui.host}:${config.ui.port}${config.ui.path}`;
+server.listen({port : process.env.PORT} , () => {
+  const host = `${process.env.HOST}:${process.env.PORT}${config.ui.path}`;
 
   if(config.ui.ssl) {
     var location = `https://${host}`;
@@ -138,4 +141,3 @@ server.listen({port : config.api.port} , () => {
     });
   }
 });
-
