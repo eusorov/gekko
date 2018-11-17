@@ -13,7 +13,7 @@ const CONFIG = {
   },
   ui: {
     ssl: false,
-    host: 'localhost',
+    host: 'gekko.usomi.de',
     port: 3000,
     path: '/'
   },
