@@ -60,14 +60,21 @@ PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
   }
 }
 
-PerformanceAnalyzer.prototype.processCandle = function(candle, done) {
-  this.price = candle.close;
-  this.dates.end = candle.start.clone().add(1, 'minute');
-
+PerformanceAnalyzer.prototype.processStratWarmupCompleted = function(candle) {
   if(!this.dates.start) {
     this.dates.start = candle.start;
     this.startPrice = candle.close;
   }
+}
+
+PerformanceAnalyzer.prototype.processCandle = function(candle, done) {
+  this.price = candle.close;
+  this.dates.end = candle.start.clone().add(1, 'minute');
+
+  // if(!this.dates.start) {
+  //   this.dates.start = candle.start;
+  //   this.startPrice = candle.close;
+  // }
 
   this.endPrice = candle.close;
 

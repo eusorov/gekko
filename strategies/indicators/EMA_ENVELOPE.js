@@ -1,4 +1,4 @@
-﻿// @link http://en.wikipedia.org/wiki/Exponential_moving_average#Exponential_moving_average
+// @link http://en.wikipedia.org/wiki/Exponential_moving_average#Exponential_moving_average
 
 var SMA = require('./SMA.js');
 
@@ -33,14 +33,16 @@ Indicator.prototype.update = function(price) {
   this.middle = this.sma.result;
   var std = this.calcstd(this.sma.prices, this.middle);
 
+  // std = std > 60 ? std : 60;
   this.result = this.sma.result;
 
   if(this.settings && this.settings.offset){
-    this.result = this.result + (this.settings.offset*0.03 * std);  // 10.000 0.1 bei SMA20! no bearMarket! 140 // 17.900 0.03 SMA120! 
-                                                                   //  1100% 0.03 BTC bei SMA120
+    this.result = this.result + (this.settings.offset * std);
+    // 0.03 BTC SMA 120 1100%?
+
   }
   this.std = std;
-  
+
   return this.result;
 };
 

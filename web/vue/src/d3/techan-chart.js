@@ -114,6 +114,9 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
                     result.overbought = 70;
                     result.oversold = 30;
                     result.rsi = !isNaN(+val) ? +val : null;
+            } if (configChart && configChart.type === "res_sup") {
+                    result.value = !isNaN(+(val)) ? +(val) : null;
+                    result.props = val.props;
             } else if (!isNaN(+val)) {
                     result.value = +val;
             } else if (val !== null && typeof val === 'object') {
@@ -504,7 +507,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
       svg.append('g')
         .attr("class", "crosshair "+indicator.name);
         if (indicator.config && indicator.config.type === "macd" ){
-                var rsiData = techan.indicator.macd()(data);
+                //var rsiData = techan.indicator.macd()(data);
                 //rsiScale.domain(techan.scale.plot.rsi(rsiData).domain());
                 svg.select("g."+ indicator.name+" .indicator-plot").datum(indicatorData[indicator.name]).call(indicator.plot);
                 svg.select("g.crosshair."+indicator.name).call(indicator.crosshair).call(zoom);

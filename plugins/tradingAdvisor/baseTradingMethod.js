@@ -125,19 +125,39 @@ Base.prototype.isBusy = function() {
 Base.prototype.calculateSyncIndicators = function(candle, done) {
   // update all indicators
   var price = candle[this.priceValue];
+
+  const allPromisis = [];
   _.each(this.indicators, function(i) {
-    if(i.input === 'price')
-      i.update(price);
-    if(i.input === 'candle')
-      i.update(candle);
-  },this);
+      const promise = new Promise((resolve, reject) => {
+      if(i.input === 'price'){
+        const ret = i.update(price);
+        if (ret && ret instanceof Promise){
+          ret.then(resolve).catch(reject);
+        }else{
+          resolve();
+        }
+      }
 
-  this.propogateTick(candle);
+      if(i.input === 'candle'){
+        const ret = i.update(candle);
+        if (ret && ret instanceof Promise){
+          ret.then(resolve).catch(reject);
+        }else{
+          resolve();
+        }
+      }
+      });
 
-  return done();
+      allPromisis.push(promise);
+    },this);
+
+  Promise.all(allPromisis).then(async ()=> {
+    await this.propogateTick(candle);
+    return done();
+  })
 }
 
-Base.prototype.propogateTick = function(candle) {
+Base.prototype.propogateTick = async function(candle) {
   this.candle = candle;
   this.update(candle);
 
@@ -158,14 +178,25 @@ Base.prototype.propogateTick = function(candle) {
       this.completedWarmup = true;
       this.emit(
         'stratWarmupCompleted',
-        {start: candle.start.clone()}
+        {start: candle.start.clone(), close: candle.close}
       );
     }
   }
 
-  if(this.completedWarmup) {
+
+  if(isAllowedToCheck) {
     this.log(candle);
-    this.check(candle);
+
+    const ret = this.check(candle);
+    const promise = new Promise((resolve, reject) => {
+      if (ret && ret instanceof Promise){
+        ret.then(resolve).catch(reject);
+      }else{
+        resolve();
+      }
+    })
+
+    await promise;
 
     if(
       this.asyncTick &&
@@ -175,6 +206,7 @@ Base.prototype.propogateTick = function(candle) {
       return this.tick(this.deferredTicks.shift())
     }
   }
+
 
   const indicators = {};
   _.each(this.indicators, (indicator, name) => {
@@ -241,7 +273,7 @@ Base.prototype.addIndicator = function(name, type, parameters) {
 
 Base.prototype.advice = function(newDirection,  _candle, adviceProps) {
   // ignore legacy soft advice
-  if(!newDirection) {
+  if(!newDirection || !this.completedWarmup) {
     return;
   }
 

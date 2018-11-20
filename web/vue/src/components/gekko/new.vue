@@ -1,8 +1,9 @@
 <template lang='pug'>
   div.contain.my2
-    h3 Start a new gekko
-    h4 scanstate: 
-      span {{this.datasetScanstate}}
+    h3 Start a new gekko from
+    div.grd-row-col-3-6.mx1
+      label(for='startFrom').wrapper Start Time for analyzing the data (UTC):
+      input(v-model='startFrom')
     gekko-config-builder(v-on:config='updateConfig')
     .hr
     .txt--center(v-if='config.valid')
@@ -27,7 +28,8 @@ export default {
   data: () => {
     return {
       pendingStratrunner: false,
-      config: {}
+      config: {},
+      startFrom: '2018-01-01 00:00'
     }
   },
   mixins: [ dataset ],
@@ -55,14 +57,19 @@ export default {
       if(!this.existingMarketWatcher)
         return;
 
+      let startFrom = moment().utc();
+      if (this.startFrom){
+        startFrom = moment(this.startFrom).utc();
+      }
+
       if(!this.requiredHistoricalData)
-        startAt = moment().utc().startOf('minute').format();
+        startAt = startFrom.startOf('minute').format();
       else {
         // TODO: figure out whether we can stitch data
         // without looking at the existing watcher
-        const optimal = moment().utc().startOf('minute')
+        const optimal = startFrom.startOf('minute')
           .subtract(this.requiredHistoricalData, 'minutes')
-          .hour(0).minute(0);          
+          .hour(0).minute(0);
 
         startAt =  optimal.format();
       }
@@ -130,16 +137,16 @@ export default {
     // if we have anough historical data, just start the gekko.
       if (this.requiredHistoricalData){
         this.pendingStratrunner = true;
-        const optimalUnix = moment().utc().startOf('minute')
+        const optimalUnix = moment().utc(this.startFrom).startOf('minute')
               .subtract(this.requiredHistoricalData, 'minutes')
               .hour(0).minute(0)
               .unix();
-              
+
         const nowUnix = moment().utc().startOf('minute').subtract(4, 'hours').unix(); // allow max 4hours hole in our data, because we can get this from exchange
 
         return new Promise((resolve, reject)=> {
           this.scanDateRange(this.config, (sets)=> {
-          // 
+          //
           //console.log(sets);
           const setAvailable = sets.filter((set) => {
             //console.log((moment.unix(set.from).format()) + ' ' +moment.unix(optimalUnix).format()+ ' ' + moment.unix(set.to).format() +' '+ moment.unix(nowUnix).format());
@@ -182,7 +189,7 @@ export default {
       // however if the user selected type "market watcher"
       // the second part won't be created
       if(this.config.type === 'market watcher') {
-       
+
         // check if the specified market is already being watched
         if(this.existingMarketWatcher) {
           alert('This market is already being watched, redirecting you now...');

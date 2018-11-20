@@ -14,7 +14,7 @@ const CONFIG = {
   ui: {
     ssl: false,
     host: 'localhost',
-    port: 3000,
+    port: 3000, 
     path: '/'
   },
   adapter: 'mysql'
