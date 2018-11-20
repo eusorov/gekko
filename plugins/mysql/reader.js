@@ -8,11 +8,11 @@ var resilient = require('./resilient');
 
 var Reader = function() {
   _.bindAll(this);
-  
-  
+
+
   const handle = new Handle(config);
   this.dbpromise = handle.getConnection().promise()
-  
+
   this.config = config;
   this.watch = config.watch;
 }
@@ -202,8 +202,26 @@ Reader.prototype.getIndicatorResults = async function(from, to, next) {
 }
 
 Reader.prototype.close = function() {
-   // 
+   //
 }
 
+Reader.prototype.getGekkos = async function(next) {
+
+  var queryStr = `select gekko_id, date, state FROM gekkos `;
+
+  try {
+    const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+    const rowsResturn = [];
+    rows.forEach((row) => {
+      row.state = JSON.parse(row.state);
+      rowsResturn.push(row);
+    })
+
+    return next(null, rowsResturn);
+  }catch(err){
+    log.error("Error while inserting gekkos: "); log.error(err);
+  }
+
+}
 
 module.exports = Reader;

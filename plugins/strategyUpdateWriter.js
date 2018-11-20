@@ -21,6 +21,10 @@ StrategyUpdateWriter.prototype.processStratUpdate = function(stratUpdate) {
   this.writer.writeIndicatorResult(stratUpdate)
 }
 
+StrategyUpdateWriter.prototype.processTradeCompleted = function(trade) {
+  this.writer.writeTrade(trade)
+}
+
 StrategyUpdateWriter.prototype.finalize = function(done) {
   this.writer.finalize(done);
 };

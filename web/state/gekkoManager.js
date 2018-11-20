@@ -7,15 +7,73 @@ const pipelineRunner = require('../../core/workers/pipeline/parent');
 const reduceState = require('./reduceState.js');
 const now = () => moment().format('YYYY-MM-DD HH:mm');
 
+var util = require(__dirname + '/../../core/util');
+const config = require('../routes/baseConfig');
+
 const GekkoManager = function() {
   this.gekkos = {};
   this.instances = {};
   this.loggers = {};
 
   this.archivedGekkos = {};
+
+  // check if we have running gekkos, which we need to run
+  util.setGekkoMode("realtime");
+  config.watch = {exchange : "kraken", currency : "ETH", asset : "ETH"};
+  util.setConfig(config);
+
+  const Writer = require('../../plugins/'+config.adapter+'/writer');
+  const Reader = require('../../plugins/'+config.adapter+'/reader');
+  this.writer = new Writer(()=> {});
+  this.reader = new Reader(()=> {});
+
+  this.reader.getGekkos((err, data) => {
+    if (err) return;
+
+    // start active Gekkos
+    data.filter((gekko)=> !gekko.state.stopped).forEach((gekko)=> {
+      // state was not updated, get recent trades / portfolio / performanceUpdate etc.
+      // a) we save all state info in DB (Mongo?)
+      // b) we save all state info in DB but in Tables: Trades, Portfolio, PerformanceReport etc
+      //    and we retrieve it all here and attach to state Object. singeGekko.vue require a lot of state Infos.
+      //    we dont need to save large state - Object
+      /*
+      this.reader.getTrades((errTrades, trades) => {
+        if (errTrades) return;
+
+        gekko.state.latest.tradeCompleted = [];
+        trades.forEach((trade) => {
+          gekko.state.latest.tradeCompleted.push(trade.trade);
+        })
+      })
+      */
+      this.restart(gekko.state);
+    });
+
+    // show stopped Gekkos
+    data.filter((gekko)=> gekko.state.stopped).forEach((gekko)=> {
+      this.archivedGekkos[gekko.gekko_id] = gekko.state;
+    });
+  });
 }
 
-GekkoManager.prototype.add = function({mode, config}) {
+GekkoManager.prototype.restart = function(state) {
+  if (!state)
+    return;
+
+  state.active = true;
+  state.stopped = false;
+
+  if (state.events && state.events.latest.portfolioChange) { //{"asset":87.78682153,"currency":0}
+    state.config.portfolioChange = state.events.latest.portfolioChange; // let paperTrade know about portfolioChange
+  };
+
+
+
+  return this.add({mode: state.mode, config: state.config, gekkostate: state});
+}
+
+GekkoManager.prototype.add = function({mode, config, gekkostate}) {
   // set type
   let type;
   if(mode === 'realtime') {
@@ -37,7 +95,14 @@ GekkoManager.prototype.add = function({mode, config}) {
 
   const date = now().replace(' ', '-').replace(':', '-');
   const n = (Math.random() + '').slice(3);
-  const id = `${date}-${logType}-${n}`;
+  let id = `${date}-${logType}-${n}`;
+
+  // if we have already a gekko_id, than reuse it.
+  if (config.gekko_id) {
+    id = config.gekko_id;
+  }else {
+    config.gekko_id = id; // pass id to the backend;
+  }
 
   // make sure we catch events happening inside te gekko instance
   config.childToParent.enabled = true;
@@ -59,11 +124,16 @@ GekkoManager.prototype.add = function({mode, config}) {
     start: moment()
   }
 
-  this.gekkos[id] = state;
+  if (gekkostate){
+    this.gekkos[id] = gekkostate;
+    if (this.archivedGekkos[id])
+      delete this.archivedGekkos[id];
+  }else{
+    this.gekkos[id] = state;
+  }
+
 
   this.loggers[id] = new Logger(id);
-
-  config.gekko_id = id; // pass id to the backend;
 
   // start the actual instance
   this.instances[id] = pipelineRunner(mode, config, this.handleRawEvent(id));
@@ -81,6 +151,10 @@ GekkoManager.prototype.add = function({mode, config}) {
     id,
     state
   });
+
+  if (mode ==="realtime"){
+    this.writer.writeGekko(id, state);
+  }
 
   return state;
 }
@@ -109,11 +183,21 @@ GekkoManager.prototype.handleRawEvent = function(id) {
 
 GekkoManager.prototype.handleGekkoEvent = function(id, event) {
   this.gekkos[id] = reduceState(this.gekkos[id], event);
+
+  // if too many candles ws is broken, so now filter them out.
+  if ( event.type === 'stratUpdate' || event.type==='stratCandle' || event.type==='candle'){
+     return;
+  }
+
   broadcast({
     type: 'gekko_event',
     id,
     event
   });
+
+  if (this.gekkos[id].mode === "realtime"){
+    this.writer.writeGekko(id, this.gekkos[id]);
+  }
 }
 
 GekkoManager.prototype.handleFatalError = function(id, err) {
@@ -131,6 +215,10 @@ GekkoManager.prototype.handleFatalError = function(id, err) {
     id,
     error: err
   });
+
+  if (state.mode === "realtime"){
+    this.writer.writeGekko(id, state);
+  }
 
   this.archive(id);
 
@@ -199,6 +287,8 @@ GekkoManager.prototype.stop = function(id) {
     id
   });
 
+  this.writer.writeGekko(id, this.gekkos[id]);
+
   this.archive(id);
 
   return true;
@@ -231,6 +321,11 @@ GekkoManager.prototype.delete = function(id) {
     type: 'gekko_deleted',
     id
   });
+
+
+  if (this.archivedGekkos[id].mode === "realtime"){
+    this.writer.deleteGekko(id);
+  }
 
   delete this.archivedGekkos[id];
 

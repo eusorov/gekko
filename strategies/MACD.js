@@ -61,7 +61,7 @@ method.log = function() {
 method.check = function(candle) {
   var macddiff = this.indicators.macd.result.diff;
 
-  if (!this.bought && (candle.start.minute % 2 ==0) ){
+  if (!this.bought ){ //&& (candle.start.minute % 2 ==0)
     this.advice('long');
     this.bought = true;
   }else if (this.bought){
@@ -83,7 +83,7 @@ method.check = function(candle) {
 
     this.trend.duration++;
 
-    log.debug('In uptrend since', this.trend.duration, 'candle(s)');
+    //log.debug('In uptrend since', this.trend.duration, 'candle(s)');
 
     if(this.trend.duration >= this.settings.macd.thresholds.persistence)
       this.trend.persisted = true;
@@ -108,7 +108,7 @@ method.check = function(candle) {
 
     this.trend.duration++;
 
-    log.debug('In downtrend since', this.trend.duration, 'candle(s)');
+    //log.debug('In downtrend since', this.trend.duration, 'candle(s)');
 
     if(this.trend.duration >= this.settings.macd.thresholds.persistence)
       this.trend.persisted = true;
@@ -121,7 +121,7 @@ method.check = function(candle) {
 
   } else {
 
-    log.debug('In no trend');
+    //log.debug('In no trend');
 
     // we're not in an up nor in a downtrend
     // but for now we ignore sideways trends

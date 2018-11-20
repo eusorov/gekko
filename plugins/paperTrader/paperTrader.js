@@ -25,7 +25,7 @@ const PaperTrader = function() {
   this.currency = watchConfig.currency;
   this.asset = watchConfig.asset;
 
-  this.portfolio = {
+   this.portfolio = {
     asset: calcConfig.simulationBalance.asset,
     currency: calcConfig.simulationBalance.currency,
   }
@@ -140,6 +140,12 @@ PaperTrader.prototype.now = function() {
 }
 
 PaperTrader.prototype.processAdvice = function(advice) {
+  // before any action set portfolio to last state when gekko restarted
+  if (config.portfolioChange && !this.restarted){
+    this.portfolio = config.portfolioChange; // if we get portfolio
+    this.restarted = true;
+  }
+
   let action;
   if(advice.recommendation === 'short') {
     action = 'sell';

@@ -58,6 +58,22 @@ Store.prototype.upsertTables = function() {
       date INT UNSIGNED NOT NULL,
       result TEXT NOT NULL,
       UNIQUE (gekko_id, date)
+    );`,
+    `CREATE TABLE IF NOT EXISTS gekkos
+    (
+      id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+      gekko_id VARCHAR(60) NOT NULL,
+      date INT UNSIGNED NOT NULL,
+      state MEDIUMTEXT NOT NULL,
+      UNIQUE (gekko_id, date)
+    );`,
+    `CREATE TABLE IF NOT EXISTS trades
+    (
+      id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+      gekko_id VARCHAR(60) NOT NULL,
+      date INT UNSIGNED NOT NULL,
+      trade TEXT NOT NULL,
+      UNIQUE (gekko_id, date)
     );`
   ];
 
@@ -116,7 +132,6 @@ Store.prototype.writeIndicatorResult = async function(indicatorResult) {
     return;
 
   const date = moment.utc(indicatorResult.date).unix();
-  // console.log(date.format('YYYY-MM-DD HH:mm'))
   var queryStr = `INSERT INTO ${mysqlUtil.table('iresults',this.watch)} (gekko_id, date, result) VALUES ( '${this.config.gekko_id}', ${date}, '${JSON.stringify(indicatorResult.indicators)}')
      ON DUPLICATE KEY UPDATE result = '${JSON.stringify(indicatorResult.indicators)}'
   `;
@@ -125,6 +140,69 @@ Store.prototype.writeIndicatorResult = async function(indicatorResult) {
     await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
   }catch(err){
     log.error("Error while inserting indicator result: "); log.error(err);
+  }
+}
+
+Store.prototype.writeGekko = async function(id, state) {
+  if (!id)
+    return;
+
+  const date = moment.utc().unix();
+
+  let queryStr = `select gekko_id FROM gekkos WHERE gekko_id = '${id}'`;
+
+  try {
+    const [rows] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+    if (rows.length >=1) { //update
+      queryStr = `UPDATE gekkos SET state = '${JSON.stringify(state)}'
+        WHERE gekko_id = '${id}'   `;
+    }else{
+      queryStr = `INSERT INTO gekkos (gekko_id, date, state) VALUES ( '${id}', ${date}, '${JSON.stringify(state)}')
+         ON DUPLICATE KEY UPDATE state = '${JSON.stringify(state)}'
+         `;
+    }
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+
+  }catch(err){
+    log.error("Error while inserting gekkos: "); log.error(err);
+  }
+}
+
+Store.prototype.deleteGekko = async function(id) {
+  if (!id)
+    return;
+
+  let queryStr1 = `DELETE FROM gekkos WHERE gekko_id = '${id}'  `;
+  let queryStr2 = `DELETE FROM trades WHERE gekko_id = '${id}'  `;
+
+  const promiseAll =  [];
+
+  try {
+    promiseAll.push(resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr1).catch((err) => {log.debug(err)}), 5000));
+    promiseAll.push(resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr2).catch((err) => {log.debug(err)}), 5000));
+    await Promise.all(promiseAll);
+
+  }catch(err){
+    log.error("Error while deleting gekkos/trades: "); log.error(err);
+  }
+}
+
+
+/** not really usefull for now */
+Store.prototype.writeTrade = async function(trade) {
+  if (!this.config.gekko_id)
+    return;
+
+  const date = trade.date.unix();
+
+  let queryStr = `INSERT INTO trades (gekko_id, date, trade) VALUES ( '${this.config.gekko_id}', ${date}, '${JSON.stringify(trade)}')
+     ON DUPLICATE KEY UPDATE trade = '${JSON.stringify(trade)}'
+     `;
+  try {
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+
+  }catch(err){
+    log.error("Error while inserting gekkos: "); log.error(err);
   }
 }
 

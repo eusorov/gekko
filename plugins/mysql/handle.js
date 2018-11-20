@@ -10,15 +10,17 @@ var Handle = function(config) {
   this.config = config;
 
   // verify the correct dependencies are installed
-  var pluginHelper = require('../../core/pluginUtil');
-  var pluginMock = {
-    slug: 'mysql adapter',
-    dependencies: config.mysql.dependencies
-  };
+if (config.mysql && config.mysql.dependencies){
+    var pluginHelper = require('../../core/pluginUtil');
+    var pluginMock = {
+      slug: 'mysql adapter',
+      dependencies: config.mysql.dependencies
+    };
 
-  var cannotLoad = pluginHelper.cannotLoad(pluginMock);
-  if(cannotLoad){
-    util.die(cannotLoad);
+    var cannotLoad = pluginHelper.cannotLoad(pluginMock);
+    if(cannotLoad){
+      util.die(cannotLoad);
+    }
   }
 }
 

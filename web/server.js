@@ -1,6 +1,3 @@
-const dotenv = require("dotenv");
-dotenv.config({ path: ".env" });
-
 const config = require('./vue/dist/UIconfig');
 
 const koa = require('koa');
@@ -22,23 +19,6 @@ const cache = require('./state/cache');
 
 const nodeCommand = _.last(process.argv[1].split('/'));
 const isDevServer = nodeCommand === 'server' || nodeCommand === 'server.js';
-
-var winston = require('winston');
-const log = winston.createLogger({
-  transports: [
-
-    new winston.transports.File({
-      name : 'filelogger',
-      filename: '../logs/server.log',
-      level: 'info',
-      handleExceptions: false,
-      json: false,
-      maxsize: 10242880, //10MB
-      maxFiles: 5,
-      colorize: false,
-    }),
-  ]
-});
 
 wss.on('connection', ws => {
   ws.isAlive = true;
@@ -117,6 +97,7 @@ router.post('/api/backtest', require(ROUTE('backtest')));
 router.post('/api/import', require(ROUTE('import')));
 router.post('/api/startGekko', require(ROUTE('startGekko')));
 router.post('/api/stopGekko', require(ROUTE('stopGekko')));
+router.post('/api/restartGekko', require(ROUTE('restartGekko')));
 router.post('/api/deleteGekko', require(ROUTE('deleteGekko')));
 router.post('/api/getCandles', require(ROUTE('getCandles')));
 router.post('/api/getIndicatorResults', require(ROUTE('getIndicatorResults')));
@@ -137,8 +118,8 @@ app
 
 server.timeout = config.api.timeout || 120000;
 server.on('request', app.callback());
-server.listen({port : process.env.PORT} , () => {
-  const host = `${process.env.HOST}:${process.env.PORT}${config.ui.path}`;
+server.listen({port : config.api.port} , () => {
+  const host = `${config.ui.host}:${config.ui.port}${config.ui.path}`;
 
   if(config.ui.ssl) {
     var location = `https://${host}`;
@@ -146,7 +127,7 @@ server.listen({port : process.env.PORT} , () => {
     var location = `http://${host}`;
   }
 
-  log.info('Serving Gekko UI on ' + location +  '\n');
+  console.log('Serving Gekko UI on ' + location +  '\n');
 
 
   // only open a browser when running `node gekko`
