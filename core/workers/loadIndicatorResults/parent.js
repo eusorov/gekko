@@ -1,9 +1,5 @@
-// example usage:
+const fork = require('child_process').fork;
 const _ = require('lodash');
-
-var ForkTask = require('relieve').tasks.ForkTask;
-var fork = require('child_process').fork;
-
 
 module.exports = (config, callback) => {
   var debug = typeof v8debug === 'object';
@@ -11,17 +7,27 @@ module.exports = (config, callback) => {
     process.execArgv = [];
   }
 
-  task = new ForkTask(fork(__dirname + '/child'));
+  const child = fork(__dirname + '/child');
 
-  task.send('start', config);
+  const message = {
+    what: 'start',
+    config
+  }
 
   const done = _.once(callback);
 
-  task.once('indicatorResults', results => {
-    return done(false, results);
+  child.on('message', function(m) {
+    if(m === 'ready')
+      return child.send(message);
+
+    // else we are done and have candles!
+    done(null, m);
+    if (this.connected) {
+      this.disconnect();
+    }
   });
 
-  task.on('exit', code => {
+  child.on('exit', code => {
     if(code !== 0)
       done('ERROR, unable to load candles, please check the console.');
   });
