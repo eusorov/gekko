@@ -15,10 +15,10 @@ module.exports = function *() {
   let config = {};
   //console.log(this.request.body)
   if(this.request.body.type === 'market watcher' && base.tradingAdvisor){
-    base.tradingAdvisor.enabled = false;
-    base.paperTrader.enabled = false;
-    base.performanceAnalyzer.enabled = false;
-    base.nodeipc.enabled = false;
+    base.tradingAdvisor = {enabled : false}
+    base.paperTrader = {enabled : false}
+    base.performanceAnalyzer = {enabled : false}
+    base.nodeipc={enabled : false}
   }else if (this.request.body.type !== 'importer'){
     base.tradingAdvisor.enabled = true;
   }

@@ -23,6 +23,7 @@ var Store = function(done) {
   this.upsertTables();
 
   this.cache = [];
+  this.indicatorResultCache = [];
 
   //writing in TICKRATE
   let TICKRATE = 20;
@@ -127,19 +128,37 @@ Store.prototype.finalize = function(done) {
 }
 
 
+Store.prototype.writeIndicatorResults = async function(indicatorResultCache) {
+  if(_.isEmpty(indicatorResultCache)){
+    return;
+  }
+
+//  const date = moment.utc(indicatorResult.date).unix();
+//  var queryStr = `INSERT INTO ${mysqlUtil.table('iresults',this.watch)} (gekko_id, date, result) VALUES ( '${this.config.gekko_id}', ${date}, '${JSON.stringify(indicatorResult.indicators)}')
+//     ON DUPLICATE KEY UPDATE result = '${JSON.stringify(indicatorResult.indicators)}'
+//  `;
+  var queryStr = `INSERT INTO ${mysqlUtil.table('iresults',this.watch)} (gekko_id, date, result) VALUES ? ON DUPLICATE KEY UPDATE result = result`;
+  let valueArrays = indicatorResultCache.map((indicatorResult) => [this.config.gekko_id, moment.utc(indicatorResult.date).unix(), JSON.stringify(indicatorResult.indicators)]);
+
+  try {
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [valueArrays]).catch((err) => {log.debug(err)}), 5000);
+  }catch(err){
+    log.error("Error while inserting indicator result: "); log.error(err);
+  }
+
+}
 Store.prototype.writeIndicatorResult = async function(indicatorResult) {
   if (!this.config.gekko_id)
     return;
 
-  const date = moment.utc(indicatorResult.date).unix();
-  var queryStr = `INSERT INTO ${mysqlUtil.table('iresults',this.watch)} (gekko_id, date, result) VALUES ( '${this.config.gekko_id}', ${date}, '${JSON.stringify(indicatorResult.indicators)}')
-     ON DUPLICATE KEY UPDATE result = '${JSON.stringify(indicatorResult.indicators)}'
-  `;
+  if(_.isEmpty(this.indicatorResultCache)){
+    setTimeout(()=> { this.writeIndicatorResults(this.indicatorResultCache); this.indicatorResultCache = [];  }, this.tickrate*1000);
+  }
 
-  try {
-    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
-  }catch(err){
-    log.error("Error while inserting indicator result: "); log.error(err);
+  this.indicatorResultCache.push(indicatorResult);
+  if (this.indicatorResultCache.length > 4000){
+    this.writeIndicatorResults(this.indicatorResultCache);
+    this.indicatorResultCache = [];
   }
 }
 

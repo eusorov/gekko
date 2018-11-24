@@ -9,6 +9,7 @@ const bodyParser = require('koa-bodyparser');
 const opn = require('opn');
 const server = require('http').createServer();
 const router = require('koa-router')();
+const compress = require('koa-compress')
 const ws = require('ws');
 const app = koa();
 
@@ -107,6 +108,10 @@ router.post('/api/getIndicatorResults', require(ROUTE('getIndicatorResults')));
 // wss.on('connection', ws => {
 //   ws.on('message', _.noop);
 // });
+app.use(compress({
+  level: require('zlib').Z_BEST_COMPRESSION,
+  threshold: 2048,
+  flush: require('zlib').Z_SYNC_FLUSH}));
 
 app
   .use(cors())
@@ -115,7 +120,6 @@ app
   .use(require('koa-logger')())
   .use(router.routes())
   .use(router.allowedMethods());
-
 server.timeout = config.api.timeout || 120000;
 server.on('request', app.callback());
 server.listen({port : config.api.port} , () => {
