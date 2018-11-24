@@ -7,27 +7,17 @@ let basePath, restPath, wsPath;
 
 // rest API path
 if(config.ssl) {
-  basePath = `https://${endpoint}`;
+  basePath = `https://${process.env.VUE_APP_HOST}`;
 } else {
-  if (process.env.NODE_ENV==="production"){
-    // basePath = `http://${config.host}${config.path}`;
-    basePath = `http://${config.host}:${config.port}${config.path}`;
-  }else{
-    basePath = `http://${config.host}:${config.port}${config.path}`;
-  }
+    basePath = `http://${process.env.VUE_APP_HOST}:${process.env.VUE_APP_PORT}${config.path}`;
 }
 
 restPath = basePath + 'api/';
 // ws API path
 if(config.ssl) {
-  wsPath = `wss://${config.host}${config.path}api`;
+  wsPath = `wss://${process.env.VUE_APP_HOST}${config.path}api`;
 } else {
-  if (process.env.NODE_ENV==="production"){
-    //wsPath = `ws://${config.host}${config.path}api`;
-    wsPath = `ws://${config.host}:${config.port}${config.path}api`;
-  }else{
-    wsPath = `ws://${config.host}:${config.port}${config.path}api`;
-  }
+    wsPath = `ws://${process.env.VUE_APP_HOST}:${process.env.VUE_APP_PORT}${config.path}api`;
 }
 
 export {
