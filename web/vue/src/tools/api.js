@@ -7,7 +7,7 @@ let basePath, restPath, wsPath;
 
 // rest API path
 if(process.env.VUE_APP_SSL) {
-  basePath = `https://${process.env.VUE_APP_HOST}`;
+  basePath = `https://${process.env.VUE_APP_HOST}${config.path}`;
 } else {
     basePath = `http://${process.env.VUE_APP_HOST}:${process.env.VUE_APP_PORT}${config.path}`;
 }
