@@ -22,6 +22,7 @@ const GekkoManager = function() {
   config.watch = {exchange : "kraken", currency : "ETH", asset : "ETH"};
   util.setConfig(config);
 
+
   const Writer = require('../../plugins/'+config.adapter+'/writer');
   const Reader = require('../../plugins/'+config.adapter+'/reader');
   this.writer = new Writer(()=> {});
@@ -63,6 +64,7 @@ GekkoManager.prototype.restart = function(state) {
 
   state.active = true;
   state.stopped = false;
+  state.passEvents = false;
 
   if (state.events && state.events.latest.portfolioChange) { //{"asset":87.78682153,"currency":0}
     state.config.portfolioChange = state.events.latest.portfolioChange; // let paperTrade know about portfolioChange
@@ -117,6 +119,7 @@ GekkoManager.prototype.add = function({mode, config, gekkostate}) {
     stopped: false,
     errored: false,
     errorMessage: false,
+    passEvents : false,
     events: {
       initial: {},
       latest: {}
@@ -185,7 +188,11 @@ GekkoManager.prototype.handleGekkoEvent = function(id, event) {
   this.gekkos[id] = reduceState(this.gekkos[id], event);
 
   // if too many candles ws is broken, so now filter them out.
-  if ( event.type === 'stratUpdate' || event.type==='stratCandle' || event.type==='candle'){
+  if (event.type === 'stratWarmupCompleted'){
+    this.gekkos[id].passEvents = true;
+  }
+
+  if (!this.gekkos[id].passEvents && (event.type === 'stratUpdate' || event.type==='stratCandle' || event.type==='candle')){
      return;
   }
 

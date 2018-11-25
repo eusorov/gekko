@@ -94,7 +94,7 @@ var util = {
       if(soft) {
         log('\n ERROR: ' + m + '\n\n');
       } else {
-        log(`\n${instanceName} encountered an error and can\'t continue`);
+        log(`\n${instanceName} encountered an error and cant continue`);
         log('\nError:\n');
         log(m, '\n\n');
         log('\nMeta debug info:\n');
