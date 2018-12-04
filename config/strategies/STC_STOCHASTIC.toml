@@ -58,9 +58,9 @@ optInSlowKPeriod=9
 optInSlowDPeriod=9
 [stochasticTulip.thresholds]
 up=80
-down=20
 cross_in_last_days=11
-
+[stochasticTulip.thresholds.buy]
+strong_down=20
 [stochasticTulip.chart]
 showInExtraWindow = true
 color = "blue"

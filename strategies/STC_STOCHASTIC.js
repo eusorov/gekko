@@ -15,13 +15,13 @@ method.init = function () {
   this.hasBoughtBull = false;
   this.hasBoughtBear = false;
   this.bearMarket = false;
-  
+
   this.prevValues = [];
   this.breakSmaProcent = 6;
   this.targetProcent = 10;
   this.stopLossProcent = 10;
 
-  // always calculate daily sma 
+  // always calculate daily sma
   // 24h =  1440; 1440/240 = 6
   let factor = 1440 / this.tradingAdvisor.candleSize;
 
@@ -73,7 +73,7 @@ method.check = function (candle) {
   this.currentValue = currentValue;
 
   this.prevValues.push(currentValue);
-  
+
   if (this.prevValues.length > 100) {
     this.prevValues.shift();
   }
@@ -85,21 +85,21 @@ method.check = function (candle) {
   //The 100-period EMA is seen to be pointing upwards.
   let emaUpwards = currentValue.ema100 > this.prevValue.ema100 ? true: false ;
 
-  // The Stochastics lines have crossed at oversold levels 
+  // The Stochastics lines have crossed at oversold levels
   // log.debug(this.prevValue);
   //stochastic cross at down thresholds
   if (!this.hasBoughtBull
     // 2. Stochastics crossed at oversold levels in the past 10 days!
     && helper.crossLong(this.prevValue.stochasticTulip.stochK, this.prevValue.stochasticTulip.stochD, this.currentValue.stochasticTulip.stochK, this.currentValue.stochasticTulip.stochD)
-    && this.currentValue.stochasticTulip.stochK <= this.settings.stochasticTulip.thresholds.down
-    && this.currentValue.stochasticTulip.stochD <= this.settings.stochasticTulip.thresholds.down
+    && this.currentValue.stochasticTulip.stochK <= this.settings.stochasticTulip.thresholds.buy.strong_down
+    && this.currentValue.stochasticTulip.stochD <= this.settings.stochasticTulip.thresholds.buy.strong_down
   ) {
     this.crossedStochPersistentBull = 1;
   }
   this.crossedStochPersistentBull = isCrossOld(this.crossedStochPersistentBull, this.settings.stochasticTulip.thresholds.cross_in_last_days);
 
 
-  if (!this.hasBoughtBear 
+  if (!this.hasBoughtBear
     // 2. Stochastics crossed at overbought levels in the past 10 days!
     && helper.crossShort(this.prevValue.stochasticTulip.stochK, this.prevValue.stochasticTulip.stochD, this.currentValue.stochasticTulip.stochK, this.currentValue.stochasticTulip.stochD)
     && this.currentValue.stochasticTulip.stochK >= this.settings.stochasticTulip.thresholds.up
@@ -160,7 +160,7 @@ method.check = function (candle) {
     crossedStochPersistentBear: this.crossedStochPersistentBear,
     stc: this.stc,
     emaUpwards: emaUpwards,
-    prevStc: this.prevValue.stc, 
+    prevStc: this.prevValue.stc,
     bearMarket: this.bearMarket
   };
   let selladviceProp = {
@@ -185,7 +185,7 @@ method.bullTrendStrat = function (candle, buyadviceProp, selladviceProp) {
   if (!this.hasBoughtBull && !this.hasBoughtBear &&
     ( buyadviceProp.crossedStochPersistentBull > 0 &&      // 2. Stochastics crossed at oversold levels in the past x days!
       buyadviceProp.stc >= this.settings.stc.thresholds.down &&// 3. STC left oversold level and is above +10 or thresholds.down
-      buyadviceProp.prevStc <= this.settings.stc.thresholds.down // 
+      buyadviceProp.prevStc <= this.settings.stc.thresholds.down //
      // && buyadviceProp.emaUpwards // is ema100 upwards
     )
   ) {
@@ -199,7 +199,7 @@ method.bullTrendStrat = function (candle, buyadviceProp, selladviceProp) {
       this.stop = candle.close*(1-this.stopLossProcent*0.01);   // stoploss max 10%
     }
   } else if (this.hasBoughtBull &&
-    (selladviceProp.breakSma  
+    (selladviceProp.breakSma
       // && selladviceProp.roc <= selladviceProp.roc_thresholds_down
        || (candle.close < this.stop)
       // || (selladviceProp.crossedStochPersistentBullSell > 0)
@@ -221,7 +221,7 @@ method.bearTrendStrat = function (candle, buyadviceProp, selladviceProp) {
   if (!this.hasBoughtBear && !this.hasBoughtBull &&
     (buyadviceProp.crossedStochPersistentBear > 0 &&      // 2. Stochastics crossed at overbought levels in the past x days!
       buyadviceProp.stc <= this.settings.stc.thresholds.up &&// 3. STC left overbought level and is belowe -10 or thresholds.up
-      buyadviceProp.prevStc >= this.settings.stc.thresholds.up // 
+      buyadviceProp.prevStc >= this.settings.stc.thresholds.up //
      // && !buyadviceProp.emaUpwards // is ema100 upwards
     )
   ) {
@@ -232,7 +232,7 @@ method.bearTrendStrat = function (candle, buyadviceProp, selladviceProp) {
     //this.stop = this.prevCandle.open < this.candle.close ? Math.min(this.prevCandle.open, this.candle.open * 0.9) : this.candle.close;   // stoploss max 10%
     this.stop = this.candle.close * 1.1;   // stoploss max 10%
   } else if (this.hasBoughtBear &&
-    (selladviceProp.breakSma  
+    (selladviceProp.breakSma
       // && selladviceProp.roc <= selladviceProp.roc_thresholds_down
       || (candle.close > this.stop)
     //  || (selladviceProp.crossedStochPersistentBearSell > 0)
@@ -261,7 +261,7 @@ function breakSmaFn (procent, candle, sma, bearMarket, shouldCheck){
   if (!shouldCheck)  return false;
 
   //if (bearMarket) console.log('bearMarket breakSMA shouldCheck')
-  
+
   if ((!bearMarket && candle.close * (1+(procent+0)*0.01) < sma) || (bearMarket && candle.close * (1-(procent+0)*0.01) > sma)){
     breakSma = true;
     //if (bearMarket) console.log('bearMarket breakSMA')
