@@ -90,11 +90,15 @@ Store.prototype.writeCandles = async function(cache) {
     return;
   }
 
-  var queryStr = `INSERT INTO ${mysqlUtil.table('candles',this.watch)} (start, open, high,low, close, vwp, volume, trades) VALUES ? ON DUPLICATE KEY UPDATE start = start`;
-  let candleArrays = cache.map((c) => [c.start.unix(), c.open, c.high, c.low, c.close, c.vwp, c.volume, c.trades]);
-
-  log.debug('writing: ' + cache.length + ' '+cache[0].start.format() +' - '+ cache[cache.length-1].start.format());
   try {
+    let queryStr1 = `DELETE FROM ${mysqlUtil.table('candles',this.watch)} WHERE start >= '${cache[0].start.unix()}' AND start <= '${cache[cache.length-1].start.unix()}'`;
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr1).catch((err) => {log.debug(err)}), 5000);
+
+    var queryStr = `INSERT INTO ${mysqlUtil.table('candles',this.watch)} (start, open, high,low, close, vwp, volume, trades) VALUES ? `;
+    let candleArrays = cache.map((c) => [c.start.unix(), c.open, c.high, c.low, c.close, c.vwp, c.volume, c.trades]);
+
+    log.debug('writing: ' + cache.length + ' '+cache[0].start.format() +' - '+ cache[cache.length-1].start.format());
+
     await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [candleArrays]).catch((err) => {log.debug(err)}), 5000);
   }catch(err){
     log.error("Error while inserting candle: "); log.error(err);

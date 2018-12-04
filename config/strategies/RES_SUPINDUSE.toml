@@ -1,0 +1,151 @@
+[RES_SUPIND.parameters]
+[RES_SUPIND.chart]
+showInExtraWindow = true
+
+[RES_SUP_BULL.parameters]
+[RES_SUP_BULL.chart]
+showInExtraWindow = true
+
+[stochasticTulip.parameters]
+optInFastKPeriod=21
+optInSlowKPeriod=9
+optInSlowDPeriod=9
+[stochasticTulip.thresholds]
+up=80
+down=20
+cross_in_last_days=11
+[stochasticTulip.chart]
+showInExtraWindow = true
+color = "blue"
+type = "stochastic"
+
+
+[stc.parameters]
+TCLen=10
+MA1Len=23
+MA2Len=50
+Factor=0.5
+[stc.thresholds]
+up=80
+down=10
+[stc.chart]
+showInExtraWindow = true
+color = "orange"
+
+[stcDaily.parameters]
+TCLen=10
+MA1Len=23
+MA2Len=50
+Factor=0.5
+candleSize=6
+[stcDaily.chart]
+showInExtraWindow = true
+
+[smaLong200.parameters]
+optInTimePeriod =200
+[smaLong200.chart]
+color = "black"
+
+[smaMiddle100.parameters]
+optInTimePeriod =100
+[smaMiddle100.chart]
+color = "green"
+[smaMiddle60.parameters]
+optInTimePeriod =60
+[smaMiddle60.chart]
+color = "green"
+[smaMiddle20.parameters]
+optInTimePeriod =20
+[smaMiddle20.chart]
+color = "green"
+
+#daily SMA
+[smaMiddle20daily.parameters]
+optInTimePeriod =120
+[smaMiddle20daily.chart]
+color = "black"
+[smaMiddle60daily.parameters]
+optInTimePeriod =360
+[smaMiddle60daily.chart]
+color = "blue"
+[smaMiddle100daily.parameters]
+optInTimePeriod =600
+[smaMiddle100daily.chart]
+color = "red"
+[smaMiddle140daily.parameters]
+optInTimePeriod =840
+[smaMiddle140daily.chart]
+color = "orange"
+[smaMiddle180daily.parameters]
+optInTimePeriod =1080
+[smaMiddle180daily.chart]
+color = "red"
+[smaMiddle220daily.parameters]
+optInTimePeriod =1320
+[smaMiddle220daily.chart]
+color = "blue"
+[smaMiddle260daily.parameters]
+optInTimePeriod =1560
+[smaMiddle260daily.chart]
+color = "black"
+
+[roc.parameters]
+optInTimePeriod =6
+[roc.thresholds]
+down =-10
+up =35
+cross_in_last_days=3
+[roc.thresholds.buy]
+down=-23
+[roc.chart]
+showInExtraWindow = true
+
+
+[bbands.parameters]
+optInTimePeriod = 20
+optInNbStdDevs = 2
+[bbands.chart]
+color = "red"
+type = "bollinger"
+
+[cci.parameters]
+optInTimePeriod =20
+[cci.thresholds]
+up =70
+down =-70
+[cci.chart]
+showInExtraWindow = true
+color = "blue"
+
+[rsi.parameters]
+interval=14
+[rsi.chart]
+showInExtraWindow = true
+type = "rsi"
+
+[adx.parameters]
+ADXLength = 14
+DILength = 20
+[adx.chart]
+showInExtraWindow = true
+type = "adx"
+
+[aroonosc.parameters]
+optInTimePeriod=14
+[aroonosc.chart]
+showInExtraWindow = true
+type = "aroonosc"
+
+[macd.parameters]
+short=20
+long=60
+signal=14
+[macd.chart]
+showInExtraWindow = true
+type = "macd"
+
+[res_sup]
+nearSmaProcent = 2
+breakSmaProcent = 3
+breakSmaBullMarket = 140
+breakSmaBearMarket = 140 

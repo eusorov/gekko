@@ -1,0 +1,81 @@
+[stc.parameters]
+TCLen=10
+MA1Len=23
+MA2Len=50
+Factor=0.5
+[stc.thresholds]
+up=80
+down=20
+[stc.chart]
+showInCandlestick = false
+showInExtraWindow = true
+color = "orange"
+
+[ema100.parameters]
+optInTimePeriod =100
+[ema100.chart]
+color = "green"
+
+[smaLong100.parameters]
+optInTimePeriod =100
+[smaLong200.chart]
+color = "black"
+[smaMiddle80.parameters]
+optInTimePeriod =80
+[smaMiddle80.chart]
+color = "#000080"
+[smaMiddle60.parameters]
+optInTimePeriod =60
+[smaMiddle60.chart]
+color = "#6495ed"
+[smaMiddle40.parameters]
+optInTimePeriod =40
+[smaMiddle40.chart]
+color = "#4169e1"
+
+[smaShort20.parameters]
+optInTimePeriod =20
+[smaShort20.thresholds]
+cross_in_last_days=3
+[smaShort20.chart]
+color = "blue"
+
+[roc.parameters]
+optInTimePeriod =6
+[roc.thresholds]
+down =-10
+up =35
+cross_in_last_days=3
+[roc.thresholds.buy]
+down=-23
+[roc.chart]
+showInCandlestick = false
+showInExtraWindow = true
+
+[stochasticTulip.parameters]
+optInFastKPeriod=21
+optInSlowKPeriod=9
+optInSlowDPeriod=9
+[stochasticTulip.thresholds]
+up=80
+down=20
+cross_in_last_days=11
+
+[stochasticTulip.chart]
+showInExtraWindow = true
+color = "blue"
+type = "stochastic"
+
+[bbands.parameters]
+optInTimePeriod = 20
+optInNbStdDevs = 2
+[bbands.chart]
+color = "red"
+type = "bollinger"
+
+
+[cci.parameters]
+optInTimePeriod =150
+[cci.thresholds]
+up =70
+down =-70

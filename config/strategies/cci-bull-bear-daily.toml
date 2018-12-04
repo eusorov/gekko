@@ -1,0 +1,25 @@
+[ccibear.parameters]
+optInTimePeriod = 20
+[ccibear.thresholds]
+up = 20
+down = -65
+[ccibear.chart]
+showInExtraWindow = true
+color = "orange"
+
+#ETH 1daily: 16000% , 4h = 6600%, XRP 4h = 2000%, XBT bad
+
+[ccibull.parameters]
+optInTimePeriod = 20
+[ccibull.thresholds]
+up = 56
+down = -20
+[ccibull.chart]
+showInExtraWindow = true
+color = "blue"
+
+
+[smaLong.parameters]
+optInTimePeriod = 100
+[smaMiddle.parameters]
+optInTimePeriod = 20
