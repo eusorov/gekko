@@ -1,9 +1,17 @@
 <template lang='pug'>
   div.contain.my2
-    h3 Start a new gekko from
-    div.grd-row-col-3-6.mx1
-      label(for='startFrom').wrapper Start Time for analyzing the data (UTC):
-      input(v-model='startFrom')
+    div.mx1
+      div.mx1
+        h3 Start a new gekko
+    div.grd
+      div.grd-row-col-3-6.mx1
+        div.mx1
+          label(for='startFrom').wrapper Start Time for analyzing the data (UTC):
+          input(v-model='startFrom')
+      div.grd-row-col-3-6.mx1
+        div.mx1
+          label(for='startFrom').wrapper Current Time only for testing (UTC) (optional):
+          input(v-model='currentTime')
     gekko-config-builder(v-on:config='updateConfig')
     .hr
     .txt--center(v-if='config.valid')
@@ -29,7 +37,8 @@ export default {
     return {
       pendingStratrunner: false,
       config: {},
-      startFrom: '2018-01-01 00:00'
+      startFrom: moment.utc('2018-10-01 00:00').format(),
+      currentTime: moment.utc('2018-12-01 00:00').format()
     }
   },
   mixins: [ dataset ],
@@ -54,7 +63,7 @@ export default {
     gekkoConfig: function() {
       var startAt;
 
-      if(!this.existingMarketWatcher)
+      if(!this.currentTime && !this.existingMarketWatcher)
         return;
 
       let startFrom = moment().utc();
@@ -74,14 +83,19 @@ export default {
         startAt =  optimal.format();
       }
 
+      let nodeipcEnabled  = true;
+      if (this.currentTime){
+        nodeipcEnabled = false;
+      }
       const gekkoConfig = Vue.util.extend({
         market: {
           type: 'leech',
-          from: startAt
+          from: startAt,
+          currentTime : this.currentTime
         },
         mode: 'realtime',
         strategyUpdateWriter : { enabled: "true"},
-        nodeipc : { enabled: "true"},
+        nodeipc : { enabled: nodeipcEnabled},
       }, this.config);
 
       gekkoConfig.candleWriter.enabled  = false;
@@ -213,11 +227,20 @@ export default {
           } else {
             // the specified market is not yet being watched,
             // we need to create a watcher
-            this.startWatcher((err, resp) => {
-              this.pendingStratrunner = resp.id;
+            if (this.currentTime){ // if test currentTime is specified, start directly without watcher
+              this.startGekko((err, resp) => {
+                this.$router.push({
+                  path: `/live-gekkos/${resp.id}`
+                });
+              });
+            }else{
+              this.startWatcher((err, resp) => {
+                this.pendingStratrunner = resp.id;
               // now we just wait for the watcher to be properly initialized
               // (see the `watch.existingMarketWatcher` method)
-            });
+              });
+            }
+
             /*
             */
           }

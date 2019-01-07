@@ -474,7 +474,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
     let trades = _trades.map( t => {
         let trade = _.pick(t, ['price']);
         trade.quantity = 1;
-        trade.type = t.action; // .includes('buy') ? 'buy' : 'sell';
+        trade.type = t.action.includes('buy') ? 'buy' : 'sell';
         const offset = moment.unix(t.date).toDate().getTimezoneOffset();
         const utcDate = moment.unix(t.date).add(offset, "m");
         if (candleSize % 60 === 0 ){
@@ -492,7 +492,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
         return trade;
     });
 
-    console.log(trades);
+    //console.log(trades);
 
     svg.select("g.candlestick").datum(data).call(candlestick);
     svg.select("g.close.annotation").datum([data[data.length-1]]).call(closeAnnotation);

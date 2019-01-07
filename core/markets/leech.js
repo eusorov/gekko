@@ -41,6 +41,7 @@ var Market = function() {
 
   this.reader = new Reader();
   this.latestTs = fromTs;
+  this.processedCurrentTime = false;
 
   setInterval(
     this.get,
@@ -58,7 +59,13 @@ Market.prototype._read = _.once(function() {
 });
 
 Market.prototype.get = function() {
-  var future = moment().add(1, 'minute').unix();
+  let future = moment().add(1, 'minute').unix();
+
+  if (config.market && config.market.currentTime && !this.processedCurrentTime){
+    future = moment.utc(config.market.currentTime).unix();
+    this.processedCurrentTime = true;
+  }
+
   this.reader.get(
     this.latestTs,
     future,

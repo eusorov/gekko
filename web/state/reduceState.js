@@ -34,7 +34,7 @@ const reduce = (state, event) => {
     }
   }
 
-  if(!state.events.initial[type] && !skipInitialEvents.includes(type)) {
+  if(state && state.events && !state.events.initial[type] && !skipInitialEvents.includes(type)) {
     state = {
       ...state,
       events: {

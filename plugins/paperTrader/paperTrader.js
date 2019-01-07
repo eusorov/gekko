@@ -147,7 +147,7 @@ PaperTrader.prototype.processAdvice = function(advice) {
   }
 
   let action;
-  if(advice.recommendation === 'short') {
+  if(advice.recommendation === 'short' && this.portfolio.asset > 0) {
     action = 'sell';
 
     // clean up potential old stop trigger
@@ -194,7 +194,7 @@ PaperTrader.prototype.processAdvice = function(advice) {
 
       this.createTrigger(advice);
     }
-  }else if(advice.recommendation === 'short bear') {
+  }else if(advice.recommendation === 'short bear'  && this.portfolio.asset > 0) {
     action = 'sell bear';
 
     // clean up potential old stop trigger
@@ -206,6 +206,10 @@ PaperTrader.prototype.processAdvice = function(advice) {
 
       delete this.activeStopTrigger;
     }
+  } else if((advice.recommendation === 'short bear' || advice.recommendation === 'short')  && this.portfolio.asset == 0) {
+    return log.warn(
+      `[Papertrader] ignoring advice : ${advice.recommendation}, no assets to sell`
+    );
   }
   else {
     return log.warn(

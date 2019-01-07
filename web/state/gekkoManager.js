@@ -71,7 +71,6 @@ GekkoManager.prototype.restart = function(state) {
   };
 
 
-
   return this.add({mode: state.mode, config: state.config, gekkostate: state});
 }
 
@@ -139,6 +138,7 @@ GekkoManager.prototype.add = function({mode, config, gekkostate}) {
   this.loggers[id] = new Logger(id);
 
   // start the actual instance
+
   this.instances[id] = pipelineRunner(mode, config, this.handleRawEvent(id));
 
   // after passing API credentials to the actual instance we mask them
@@ -187,12 +187,12 @@ GekkoManager.prototype.handleRawEvent = function(id) {
 GekkoManager.prototype.handleGekkoEvent = function(id, event) {
   this.gekkos[id] = reduceState(this.gekkos[id], event);
 
-  // if too many candles ws is broken, so now filter them out.
-  if (event.type === 'stratWarmupCompleted'){
+  // if too many candles ws is broken, so now filter them out. Also when doing testing with currentTime set.
+  if (event.type === 'stratWarmupCompleted' && !this.gekkos[id].config.market.currentTime){
     this.gekkos[id].passEvents = true;
   }
 
-  if (!this.gekkos[id].passEvents && (event.type === 'stratUpdate' || event.type==='stratCandle' || event.type==='candle')){
+  if (!this.gekkos[id].passEvents && (event.type === 'stratUpdate' || event.type==='stratCandle' || event.type==='candle' || event.type === 'portfolioValueChange' || event.type === 'roundtripUpdate')){
      return;
   }
 

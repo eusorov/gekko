@@ -167,6 +167,9 @@ var util = {
       return false;
   },
   getStartTime: function() {
+    if (_config && _config.market && _config.market.currentTime){
+      startTime   = moment.utc(_config.market.currentTime);
+    }
     return startTime;
   },
 }
