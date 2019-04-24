@@ -12,6 +12,13 @@
         div.mx1
           label(for='startFrom').wrapper Current Time only for testing (UTC) (optional):
           input(v-model='currentTime')
+      div.grd-row-col-3-6.mx1
+        div.grd-row.mx1
+          div.grd-row-col-1-6
+            Enable nodeipc?
+          div.grd-row-col-1-6
+            input(type='checkbox'   v-model='nodeipcEnabled')
+            // {{ nodeipcEnabled }}
     gekko-config-builder(v-on:config='updateConfig')
     .hr
     .txt--center(v-if='config.valid')
@@ -38,7 +45,8 @@ export default {
       pendingStratrunner: false,
       config: {},
       startFrom: moment.utc('2018-10-01 00:00').format(),
-      currentTime: moment.utc('2018-12-01 00:00').format()
+      currentTime: moment.utc('2018-12-01 00:00').format(),
+      nodeipcEnabled: false
     }
   },
   mixins: [ dataset ],
@@ -83,10 +91,7 @@ export default {
         startAt =  optimal.format();
       }
 
-      let nodeipcEnabled  = true;
-      if (this.currentTime){
-        nodeipcEnabled = false;
-      }
+
       const gekkoConfig = Vue.util.extend({
         market: {
           type: 'leech',
@@ -95,7 +100,7 @@ export default {
         },
         mode: 'realtime',
         strategyUpdateWriter : { enabled: "true"},
-        nodeipc : { enabled: nodeipcEnabled},
+        nodeipc : { enabled: this.nodeipcEnabled},
       }, this.config);
 
       gekkoConfig.candleWriter.enabled  = false;
