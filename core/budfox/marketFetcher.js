@@ -73,7 +73,11 @@ Fetcher.prototype._fetch = function(since) {
   if(++this.tries >= this.limit)
     return;
 
-  this.exchangeTrader.getTrades(since, this.processTrades, false);
+  try {
+    this.exchangeTrader.getTrades(since, this.processTrades, false);
+  }catch (ex){
+    this.processTrades(ex);
+  }
 }
 
 Fetcher.prototype.fetch = function() {
