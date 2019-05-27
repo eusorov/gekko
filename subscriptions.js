@@ -20,6 +20,11 @@ var subscriptions = [
     handler: 'processMarketStart'
   },
   {
+    emitter: 'market',
+    event: 'noCandles',
+    handler: 'processNoCandles'
+  },
+  {
     emitter: 'tradingAdvisor',
     event: 'stratWarmupCompleted',
     handler: 'processStratWarmupCompleted'

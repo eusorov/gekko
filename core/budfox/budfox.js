@@ -42,6 +42,12 @@ var BudFox = function(config) {
     e => this.emit('marketStart', e)
   );
 
+  // relay a noCandles event
+  this.marketDataProvider.on(
+    'noCandles',
+    e => this.emit('noCandles', e)
+  );
+
   // Output the candles
   this.candleManager.on(
     'candles',

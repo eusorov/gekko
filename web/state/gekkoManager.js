@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 
+const Telegrambot = require('./../telegrambot');
 const broadcast = require('./cache').get('broadcast');
 const Logger = require('./logger');
 const pipelineRunner = require('../../core/workers/pipeline/parent');
@@ -27,6 +28,8 @@ const GekkoManager = function() {
   const Reader = require('../../plugins/'+config.adapter+'/reader');
   this.writer = new Writer(()=> {});
   this.reader = new Reader(()=> {});
+
+  this.telegrambot = new Telegrambot();
 
   this.reader.getGekkos((err, data) => {
     if (err) return;
@@ -196,7 +199,7 @@ GekkoManager.prototype.handleGekkoEvent = function(id, event) {
      return;
   }
 
-  broadcast({
+   broadcast({
     type: 'gekko_event',
     id,
     event
@@ -204,6 +207,14 @@ GekkoManager.prototype.handleGekkoEvent = function(id, event) {
 
   if (this.gekkos[id].mode === "realtime"){
     this.writer.writeGekko(id, this.gekkos[id]);
+
+    if (event.type === 'noCandles'){
+       this.telegrambot.processNoCandles(this.gekkos[id].config, event.payload)
+    }
+
+    if (event.type === 'advice'){
+       this.telegrambot.processAdvice(this.gekkos[id].config, event.payload)
+    }
   }
 }
 

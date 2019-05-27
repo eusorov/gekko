@@ -21,6 +21,8 @@ const Manager = function(config) {
   // relay newly fetched trades
   this.source
     .on('trades batch', this.relayTrades);
+
+  this.source.on('noCandles', e => this.emit('noCandles', e));
 }
 
 util.makeEventEmitter(Manager);

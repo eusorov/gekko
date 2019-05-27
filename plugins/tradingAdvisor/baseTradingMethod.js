@@ -324,8 +324,14 @@ Base.prototype.advice = function(newDirection,  _candle, adviceProps) {
   const advice = {
     id: 'advice-' + this.propogatedAdvices,
     recommendation: newDirection,
-    adviceProps : adviceProps
+    adviceProps : adviceProps,
   };
+
+  if (_candle){
+    advice.candle = _candle;
+  }else{
+    advice.candle = this.candle;
+  }
 
   if(trigger) {
     advice.trigger = trigger;

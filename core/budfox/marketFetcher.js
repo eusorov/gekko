@@ -60,7 +60,7 @@ const Fetcher = function(config) {
   // we will keep on retrying until next
   // scheduled fetch.
   this.tries = 0;
-  this.limit = 20; // [TODO]
+  this.limit = 20; // [TODO] ca. 800 sec = 13Min max.
 
   this.firstFetch = true;
 
@@ -70,8 +70,10 @@ const Fetcher = function(config) {
 util.makeEventEmitter(Fetcher);
 
 Fetcher.prototype._fetch = function(since) {
-  if(++this.tries >= this.limit)
-    return;
+  if(++this.tries >= this.limit){
+      this.emit('noCandles', { lastFetchedTradeUtc: this.lastFetchedTradeUtc});
+      this.tries = 0;
+  }
 
   try {
     this.exchangeTrader.getTrades(since, this.processTrades, false);
@@ -113,6 +115,9 @@ Fetcher.prototype.processTrades = function(err, trades) {
 
   this.fetching = false; // set here to false because we could fetch
   this.batcher.write(trades);
+
+  //save last trade timestamp
+  this.lastFetchedTradeUtc = moment.unix(_.last(trades).date).utc();
 }
 
 Fetcher.prototype.relayTrades = function(batch) {

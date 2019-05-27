@@ -75,6 +75,10 @@ Store.prototype.upsertTables = function() {
       date INT UNSIGNED NOT NULL,
       trade TEXT NOT NULL,
       UNIQUE (gekko_id, date)
+    );`,
+    `CREATE TABLE IF NOT EXISTS telegramsub
+    (
+      chatid VARCHAR(60) PRIMARY KEY
     );`
   ];
 
@@ -226,6 +230,33 @@ Store.prototype.writeTrade = async function(trade) {
 
   }catch(err){
     log.error("Error while inserting gekkos: "); log.error(err);
+  }
+}
+
+
+Store.prototype.writeTelegramSubscriber = async function(chatid) {
+  if (!chatid)
+    return;
+
+  let queryStr = `INSERT INTO telegramsub (chatid) VALUES ( '${chatid}')
+      ON DUPLICATE KEY UPDATE chatid = '${chatid}'
+   `;
+  try {
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+  }catch(err){
+    log.error("Error while inserting Telegram Subscriber: "); log.error(err);
+  }
+}
+
+Store.prototype.deleteTelegramSubscriber = async function(chatid) {
+  if (!chatid)
+    return;
+
+  let queryStr1 = `DELETE FROM telegramsub WHERE chatid = '${chatid}'  `;
+  try {
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr1).catch((err) => {log.debug(err)}), 5000);
+  }catch(err){
+    log.error("Error while deleting gekkos/trades: "); log.error(err);
   }
 }
 

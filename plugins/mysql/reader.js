@@ -224,4 +224,18 @@ Reader.prototype.getGekkos = async function(next) {
 
 }
 
+Reader.prototype.getTelegramSubscribers = async function(next) {
+
+  var queryStr = `select chatid FROM telegramsub `;
+
+  try {
+    const [rows] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+
+    return next(null, rows);
+  }catch(err){
+    log.error("Error while reading telegram subscribers: "); log.error(err);
+  }
+
+}
+
 module.exports = Reader;
