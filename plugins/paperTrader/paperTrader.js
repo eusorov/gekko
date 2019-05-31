@@ -321,7 +321,7 @@ PaperTrader.prototype.processCandle = function(candle, done) {
 
   if(!this.balance) {
     this.setStartBalance();
-    this.relayPortfolioChange();
+    // this.relayPortfolioChange(); // dont send the start portfolio, we get it from config.paperTrader
     this.relayPortfolioValueChange();
   }
 

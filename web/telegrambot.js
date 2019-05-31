@@ -52,6 +52,12 @@ Telegrambot.prototype.processAdvice = function(config, advice) {
     });
 };
 
+Telegrambot.prototype.processRoundtrip = function(config, roundtrip) {
+    this.subscribers.forEach((chatId)=> {
+      this.emitRoundrip(chatId, config, roundtrip)
+    });
+};
+
   // we got error that we cannnot retrieve candles from exchange
 Telegrambot.prototype.processNoCandles = function(config, payload) {
     this.subscribers.forEach((chatId)=> {
@@ -134,6 +140,28 @@ Telegrambot.prototype.emitAdvice = function(chatid, config, advice) {
     message += 'None'
   }
 
+  if (chatid) {
+    this.bot.sendMessage(chatid, message);
+  }
+};
+
+Telegrambot.prototype.emitRoundrip = function(chatid, config, roundtrip) {
+  let message = [
+    'Roundtrip for ',
+    config.watch.exchange,
+    ' ',
+    config.watch.currency,
+    '/',
+    config.watch.asset,
+    ' using ',
+    config.tradingAdvisor.method,
+    ' at ',
+    config.tradingAdvisor.candleSize,
+    ' minute candles,\n',
+    'pnl: ', roundtrip.pnl,
+    'profit: ', roundtrip.profit
+  ].join('');
+  
   if (chatid) {
     this.bot.sendMessage(chatid, message);
   }

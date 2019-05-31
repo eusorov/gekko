@@ -44,7 +44,13 @@ const PerformanceAnalyzer = function() {
   this.portfolio = {};
   this.balance;
 
-  this.start = {};
+  this.start = {
+    portfolio : {
+      asset: config.paperTrader.simulationBalance.asset,
+      currency: config.paperTrader.simulationBalance.currency,
+   }
+  };
+
   this.openRoundTrip = false;
 }
 
@@ -54,11 +60,12 @@ PerformanceAnalyzer.prototype.processPortfolioValueChange = function(event) {
   }
 }
 
-PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
-  if(!this.start.portfolio) {
-    this.start.portfolio = event;
-  }
-}
+// dont recieve the start portfolio, we get it from config.paperTrader
+// PerformanceAnalyzer.prototype.processPortfolioChange = function(event) {
+//   if(!this.start.portfolio) {
+//     this.start.portfolio = event;
+//   }
+// }
 
 PerformanceAnalyzer.prototype.processStratWarmupCompleted = function(candle) {
   if(!this.dates.start) {
@@ -124,9 +131,18 @@ PerformanceAnalyzer.prototype.processTradeCompleted = function(trade) {
 
 PerformanceAnalyzer.prototype.registerRoundtripPart = function(trade) {
   if(this.trades === 1 && (trade.action === 'sell' || trade.action === 'sell bear') ) {
-    // this is not part of a valid roundtrip
-    console.log("skippng :(")
-    return;
+    if (config.tradeCompleted && config.tradeCompleted.action.includes("buy")){ // we got a restart with last tradeCompleted event 
+      this.trades++;
+      this.roundTrip.entry = {
+        date: moment.utc(config.tradeCompleted.date),
+        price: config.tradeCompleted.price,
+        total: config.tradeCompleted.balance
+      }
+    }else{
+      // this is not part of a valid roundtrip
+      log.error("performanceAnalyser got invalid trade, this.trades: "+ this.trades + " trade.action: "+ trade.action + " ")
+      return;
+    }
   }
 
   if(trade.action === 'buy' || trade.action === 'buy bear') {
