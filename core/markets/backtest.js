@@ -9,11 +9,12 @@ var adapter = config[config.adapter];
 var Reader = require(dirs.gekko + adapter.path + '/reader');
 var daterange = config.backtest.daterange;
 
-var to = moment.utc(daterange.to);
+var to = moment.utc(daterange.to, "YYYY-MM-DD");
 var from = moment.utc(daterange.from,  "YYYY-MM-DD");
 
 //subtract history
-from = from.subtract((+config.tradingAdvisor.historySize)*(+config.tradingAdvisor.candleSize), "minutes");
+let duration = (+config.tradingAdvisor.historySize)*(+config.tradingAdvisor.candleSize);
+from = from.clone().subtract(duration, "minutes");
 from.hours(0).minutes(0); // start always from 00:00
 
 
@@ -73,19 +74,17 @@ Market.prototype.get = function() {
 
 Market.prototype.processCandles = function(err, candles) {
   this.pushing = true;
+  
   var amount = _.size(candles);
-
-  if(amount === 0) {
-    if(this.ended) {
+    if(this.ended && amount === 0) {
       this.closed = true;
       this.reader.close();
       this.push({isFinished: true});
-    } else {
+    } else if (amount === 0 && config.watch.exchange !== "stocks"){
       util.die('Query returned no candles (do you have local data for the specified range?)');
     }
-  }
 
-  if(!this.ended && amount < this.batchSize) {
+  if(!this.ended && amount < this.batchSize && config.watch.exchange !== "stocks") {
     var d = function(ts) {
       return moment.unix(ts).utc().format('YYYY-MM-DD HH:mm:ss');
     }

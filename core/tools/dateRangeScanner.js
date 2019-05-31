@@ -36,11 +36,16 @@ async function scan(done) {
     var first = res[0].first;
     var last = res[0].last;
 
-    var optimal = (last - first) / 60;
-
     var available = res[1];
 
-    log.debug('Available', available);
+    if (config.watch.exchange === "stocks"){
+      var optimal = available-1;
+    }else{
+      var optimal = (last - first) / 60;
+    }
+    
+
+    log.debug(config.watch.asset, 'first', first, 'last', last, 'Available', available);
     log.debug('Optimal', optimal);
 
     // There is a candle for every minute
