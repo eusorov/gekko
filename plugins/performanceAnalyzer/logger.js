@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const moment = require('moment');
-const humanizeDuration = require('humanize-duration');
 
 const util = require('../../core/util.js');
 const dirs = util.dirs();

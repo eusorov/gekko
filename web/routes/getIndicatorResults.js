@@ -6,9 +6,9 @@ const {promisify} = require('util');
 const loadIndicatorResults = promisify(require('../../core/workers/loadIndicatorResults/parent'));
 const base = require('./baseConfig');
 
-module.exports = function *() {
+module.exports = async function (ctx) {
 
   config = {};
-  _.merge(config, base, this.request.body);
-  this.body = yield loadIndicatorResults(config);
+  _.merge(config, base, ctx.request.body);
+  ctx.body = await loadIndicatorResults(config);
 }

@@ -33,7 +33,7 @@ const Telegrambot = function() {
   })
 
   this.bot = new telegram(process.env.TELEGRAM_TOKEN, {
-    polling: true,
+    polling: process.env.TELEGRAM_POLLING === 'true' ? true : false
   });
 
 //  let url = 'https://6c1c0c3c.ngrok.io';

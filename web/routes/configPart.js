@@ -1,5 +1,7 @@
 const _ = require('lodash');
-const fs = require('co-fs');
+const fs = require('fs');
+const util = require('util');
+const readFileAsync = util.promisify(fs.readFile);
 
 const parts = {
   paperTrader: 'config/plugins/paperTrader',
@@ -9,12 +11,12 @@ const parts = {
 
 const gekkoRoot = __dirname + '/../../';
 
-module.exports = function *() {
-  if(!_.has(parts, this.params.part))
-    return this.body = 'error :(';
+module.exports = async function (ctx) {
+  if(!_.has(parts, ctx.params.part))
+    return ctx.body = 'error :(';
 
-  const fileName = gekkoRoot + '/' + parts[this.params.part] + '.toml';
-  this.body = {
-    part: yield fs.readFile(fileName, 'utf8') 
-  }
+  const fileName = gekkoRoot + '/' + parts[ctx.params.part] + '.toml';
+
+  const data = await readFileAsync(fileName, 'utf8');
+  ctx.body = {part : data};
 }

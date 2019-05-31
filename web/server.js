@@ -2,7 +2,7 @@ const config = require('./vue/dist/UIconfig');
 
 const koa = require('koa');
 const serve = require('koa-static');
-const cors = require('koa-cors');
+const cors = require('@koa/cors');
 const _ = require('lodash');
 const bodyParser = require('koa-bodyparser');
 
@@ -10,8 +10,7 @@ const opn = require('opn');
 const server = require('http').createServer();
 const router = require('koa-router')();
 const compress = require('koa-compress')
-const ws = require('ws');
-const app = koa();
+const app = new koa();
 
 const WebSocketServer = require('ws').Server;
 const wss = new WebSocketServer({ server: server });

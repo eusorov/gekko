@@ -71,6 +71,7 @@ GekkoManager.prototype.restart = function(state) {
 
   if (state.events && state.events.latest.portfolioChange) { //{"asset":87.78682153,"currency":0}
     state.config.portfolioChange = state.events.latest.portfolioChange; // let paperTrade know about portfolioChange
+    state.config.tradeCompleted = state.events.latest.tradeCompleted; // let perofrmanceAnalyse know about latest tradeCompleted Order
   };
 
 
@@ -141,7 +142,6 @@ GekkoManager.prototype.add = function({mode, config, gekkostate}) {
   this.loggers[id] = new Logger(id);
 
   // start the actual instance
-
   this.instances[id] = pipelineRunner(mode, config, this.handleRawEvent(id));
 
   // after passing API credentials to the actual instance we mask them
@@ -199,7 +199,7 @@ GekkoManager.prototype.handleGekkoEvent = function(id, event) {
      return;
   }
 
-   broadcast({
+  broadcast({
     type: 'gekko_event',
     id,
     event
@@ -214,6 +214,10 @@ GekkoManager.prototype.handleGekkoEvent = function(id, event) {
 
     if (event.type === 'advice'){
        this.telegrambot.processAdvice(this.gekkos[id].config, event.payload)
+    }
+
+    if (event.type === 'roundtrip'){
+       this.telegrambot.processRoundtrip(this.gekkos[id].config, event.payload)
     }
   }
 }

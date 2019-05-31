@@ -9,23 +9,23 @@ const base = require('./baseConfig');
 
 // starts an import
 // requires a post body with a config object
-module.exports = function *() {
-  const mode = this.request.body.mode;
+module.exports = async function (ctx) {
+  const mode = ctx.request.body.mode;
 
   let config = {};
-  //console.log(this.request.body)
-  if(this.request.body.type === 'market watcher' && base.tradingAdvisor){
+  //console.log(ctx.request.body)
+  if(ctx.request.body.type === 'market watcher' && base.tradingAdvisor){
     base.tradingAdvisor = {enabled : false}
     base.paperTrader = {enabled : false}
     base.performanceAnalyzer = {enabled : false}
     base.nodeipc={enabled : false}
-  }else if (this.request.body.type !== 'importer'){
+  }else if (ctx.request.body.type !== 'importer'){
     base.tradingAdvisor.enabled = true;
   }
 
   //console.log("==================================== base ")
   //console.log(base)
-  _.merge(config, base, this.request.body);
+  _.merge(config, base, ctx.request.body);
 
   // Attach API keys
   if(config.trader && config.trader.enabled && !config.trader.key) {
@@ -33,7 +33,7 @@ module.exports = function *() {
     const keys = apiKeyManager._getApiKeyPair(config.watch.exchange);
 
     if(!keys) {
-      this.body = 'No API keys found for this exchange.';
+      ctx.body = 'No API keys found for this exchange.';
       return;
     }
 
@@ -45,5 +45,5 @@ module.exports = function *() {
 
   const state = gekkoManager.add({config, mode});
 
-  this.body = state;
+  ctx.body = state;
 }
