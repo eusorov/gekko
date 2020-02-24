@@ -11,12 +11,30 @@
         router-link(to='/backtest').py1 Backtest
         router-link(to='/data').py1 Local data
         router-link(to='/config').py1 Config
-        a(href='https://gekko.wizb.it/docs/introduction/about_gekko.html', target='_blank').py1 Documentation
+        router-link(to='/login' v-if="!isLoggedIn").py1 Login
+        a(v-on:click="logout" v-if="isLoggedIn").py1 Logout
 
 </template>
 
 <script>
-export default {}
+import firebase from 'firebase';
+
+export default {
+ name: 'dashboard',
+ computed : {
+      isLoggedIn : function(){ return this.$store.getters.isLoggedIn}
+ },  
+ methods: {
+    logout: function() {
+      console.log("logout");
+      firebase.auth().signOut().then(() => {
+        this.$store.dispatch('logout').then(() => {
+          this.$router.push('/login')
+        })
+      })
+    }
+  }
+}
 </script>
 
 <style>
