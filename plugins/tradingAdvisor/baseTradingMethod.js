@@ -69,11 +69,12 @@ var Base = function(settings) {
     this.updateOneMin = function() {};
 
   // let's run the implemented starting point
-  this.init();
+  // init method can be async now
+  this.asyncInit();
+
   if (!_.isNumber(this.requiredHistory)){
     this.requiredHistory = config.tradingAdvisor.historySize;
   }
-
 
   if(!config.debug || !this.log)
     this.log = function() {};
@@ -92,6 +93,20 @@ var Base = function(settings) {
 
 // teach our base trading method events
 util.makeEventEmitter(Base);
+
+Base.prototype.asyncInit = async function (){
+
+  const ret = this.init();
+  const promise = new Promise((resolve, reject) => {
+    if (ret && ret instanceof Promise){
+      ret.then(resolve).catch(reject);
+    }else{
+      resolve();
+    }
+  })
+
+  await promise;
+}
 
 Base.prototype.tick = function(candle, done) {
   this.age++;
