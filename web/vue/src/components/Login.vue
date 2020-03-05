@@ -7,14 +7,18 @@
         input(v-model="password", placeholder="Password", type="password", autocomplete="current-password")  
         br
         a.btn--primary(v-on:click="login") Connection
+</template>
+
+<!--  disable for now signup  
       p.text or Sign In with Google
         a.social-button(v-on:click="socialLogin")
           img(alt="Google Logo" src='static/google-logo.png')
       p.text You don't have an account ? You can 
         router-link(to='/sign-up') create one
-</template>
-
+        --> 
 <script>
+
+
   import firebase from 'firebase';
 
   export default {
