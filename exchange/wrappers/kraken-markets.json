@@ -1,6 +1,7 @@
 {
   "assets": [
     "BCH",
+    "BAT",
     "DASH",
     "EOS",
     "GNO",
@@ -9,6 +10,7 @@
     "ETH",
     "ICN",
     "LTC",
+    "LINK",
     "MLN",
     "REP",
     "XBT",
@@ -16,7 +18,8 @@
     "XLM",
     "XMR",
     "XRP",
-    "ZEC"
+    "ZEC",
+    "XTZ"
   ],
   "currencies": [
     "EUR",
@@ -28,6 +31,40 @@
     "JPY"
   ],
   "markets": [
+    {
+      "pair": [
+        "EUR",
+        "BAT"
+      ],
+      "prefixed": [
+        "ZEUR",
+        "BAT"
+      ],
+      "book": "BATEUR",
+      "minimalOrder": {
+        "amount": "0.002",
+        "unit": "asset"
+      },
+      "pricePrecision": 1,
+      "amountPrecision": 8
+    },
+    {
+      "pair": [
+        "USD",
+        "BAT"
+      ],
+      "prefixed": [
+        "ZUSD",
+        "BAT"
+      ],
+      "book": "BATUSD",
+      "minimalOrder": {
+        "amount": "0.002",
+        "unit": "asset"
+      },
+      "pricePrecision": 1,
+      "amountPrecision": 8
+    },
     {
       "pair": [
         "EUR",
@@ -130,6 +167,40 @@
       "pricePrecision": 5,
       "amountPrecision": 8
     },
+    {
+      "pair": [
+        "EUR",
+        "LINK"
+      ],
+      "prefixed": [
+        "ZEUR",
+        "LINK"
+      ],
+      "book": "LINKEUR",
+      "minimalOrder": {
+        "amount": "0.002",
+        "unit": "asset"
+      },
+      "pricePrecision": 1,
+      "amountPrecision": 8
+    },
+    {
+      "pair": [
+        "USD",
+        "LINK"
+      ],
+      "prefixed": [
+        "ZUSD",
+        "LINK"
+      ],
+      "book": "LINKUSD",
+      "minimalOrder": {
+        "amount": "0.002",
+        "unit": "asset"
+      },
+      "pricePrecision": 1,
+      "amountPrecision": 8
+    },    
     {
       "pair": [
         "ETH",
@@ -996,6 +1067,40 @@
       },
       "pricePrecision": 2,
       "amountPrecision": 8
-    }
+    },
+    {
+      "pair": [
+        "EUR",
+        "XTZ"
+      ],
+      "prefixed": [
+        "ZEUR",
+        "XTZ"
+      ],
+      "book": "XTZEUR",
+      "minimalOrder": {
+        "amount": "0.002",
+        "unit": "asset"
+      },
+      "pricePrecision": 1,
+      "amountPrecision": 8
+    },
+    {
+      "pair": [
+        "USD",
+        "XTZ"
+      ],
+      "prefixed": [
+        "ZUSD",
+        "XTZ"
+      ],
+      "book": "XTZUSD",
+      "minimalOrder": {
+        "amount": "0.002",
+        "unit": "asset"
+      },
+      "pricePrecision": 1,
+      "amountPrecision": 8
+    }        
   ]
 }
