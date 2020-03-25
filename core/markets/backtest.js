@@ -14,8 +14,8 @@ var from = moment.utc(daterange.from,  "YYYY-MM-DD");
 
 //subtract history
 let duration = (+config.tradingAdvisor.historySize)*(+config.tradingAdvisor.candleSize);
-from = from.clone().subtract(duration, "minutes");
 from.hours(0).minutes(0); // start always from 00:00
+from = from.clone().subtract(duration, "minutes");
 
 
 if(to <= from)

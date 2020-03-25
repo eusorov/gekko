@@ -177,7 +177,7 @@ Base.prototype.propogateTick = async function(candle) {
   this.update(candle);
 
   this.processedTicks++;
-  var isAllowedToCheck = this.requiredHistory <= this.age;
+  var isAllowedToCheck = this.requiredHistory+1 <= this.age;
 
   if(!this.completedWarmup) {
 
