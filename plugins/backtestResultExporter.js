@@ -83,6 +83,20 @@ BacktestResultExporter.prototype.processStratUpdate = function(stratUpdate) {
   });
 }
 
+/**
+ * Bugfix for endTime and endPrice and market for UI,
+ * they should be alsways the last candle of the market
+ */
+
+BacktestResultExporter.prototype.processCandle = function(candle, done) {
+  if (this.performanceReport){
+    this.performanceReport.endTime = candle.start.utc().format('YYYY-MM-DD HH:mm:ss');
+    this.performanceReport.endPrice = candle.close;
+    this.performanceReport.market = this.performanceReport.endPrice * 100 
+        / this.performanceReport.startPrice - 100;
+  }
+  done();
+}
 BacktestResultExporter.prototype.processPerformanceReport = function(performanceReport) {
   this.performanceReport = performanceReport;
 }
