@@ -92,6 +92,7 @@ var util = {
 
     if(m) {
       if(soft) {
+        log(JSON.stringify(m));
         log('\n ERROR: ' + m + '\n\n');
       } else {
         log(`\n${instanceName} encountered an error and cant continue`);
