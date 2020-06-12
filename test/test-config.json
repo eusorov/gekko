@@ -118,6 +118,14 @@
       ]
     }
   },
+  "mysql" : {
+    "path": "plugins/mysql",
+    "version": 0.1,
+    "host": "localhost",
+    "database": "cryptodbtest",
+    "user": "crypto",
+    "password" :"123456"
+  },      
   "backtest": {
     "adapter": "sqlite",
     "daterange": "scan",
@@ -128,5 +136,7 @@
       "from": "2015-09-09 12:00:00"
     }
   },
+  "headless":true,
+  
   "I understand that Gekko only automates MY OWN trading strategies": false
 }

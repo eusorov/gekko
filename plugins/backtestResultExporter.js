@@ -10,6 +10,10 @@ const moment = require('moment');
 const fs = require('fs');
 
 const BacktestResultExporter = function() {
+
+  const Writer = require('./'+config.adapter+'/writer');
+  this.writer = new Writer(()=> {});
+
   this.performanceReport;
   this.roundtrips = [];
   this.stratUpdates = [];
@@ -101,7 +105,7 @@ BacktestResultExporter.prototype.processPerformanceReport = function(performance
   this.performanceReport = performanceReport;
 }
 
-BacktestResultExporter.prototype.finalize = function(done) {
+BacktestResultExporter.prototype.finalize = async function(done) {
   const backtest = {
     performanceReport: this.performanceReport
   };
@@ -122,11 +126,14 @@ BacktestResultExporter.prototype.finalize = function(done) {
     process.send({backtest});
   }
 
-  if(config.backtestResultExporter.writeToDisk) {
-    this.writeToDisk(backtest, done);
-  } else {
-    done();
-  }
+  const backtestSmall = {
+    roundtrips : backtest.roundtrips,
+    trades : backtest.trades,
+    performanceReport : backtest.performanceReport
+  } 
+
+  await this.writer.writeBacktest(backtestSmall, config);
+  done();
 };
 
 BacktestResultExporter.prototype.writeToDisk = function(backtest, next) {

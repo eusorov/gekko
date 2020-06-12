@@ -30,7 +30,7 @@ describe('indicators/CCI', function() {
   var verified_cci12results = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 91.97995, 35.138387, -86.288416, 30.06993, 67.713787, -85.863874, -44.274809, -51.105651, -102.536873, -68.659725, -49.02507, -14.705882, -21.217712, 42.461538, 122.124711, -94.10628, 146.91745, 197.464342, 135.599506, 111.925175, -80.55041, -23.476298, -99.837574, -126.229111, -84.671533, 30.350877, 58.954584, -61.147046];
 
   it('should correctly calculate CCI with period 8', function() {
-    var cci = new CCI({ history: 8, constant: 0.015 });
+    var cci = new CCI(8);
 	_.each(close,function(p,i) {
       cci.update({high: high[i], low: low[i] , close: close[i]});
 	  //when i<history, cci.results returns false
@@ -40,7 +40,7 @@ describe('indicators/CCI', function() {
   });
 
   it('should correctly calculate CCI with period 10', function() {
-     var cci = new CCI({ history: 10, constant: 0.015 });
+     var cci = new CCI(10);
 	_.each(close,function(p,i) {
       cci.update({high: high[i], low: low[i] , close: close[i]});
 	  if (typeof(cci.result) == 'boolean') cci.result = 0;
@@ -49,7 +49,7 @@ describe('indicators/CCI', function() {
   });
 
   it('should correctly calculate CCI with period 12', function() {
-     var cci = new CCI({ history: 12, constant: 0.015 });
+     var cci = new CCI(12);
 	_.each(close,function(p,i) {
       cci.update({high: high[i], low: low[i] , close: close[i]});
 	  if (typeof(cci.result) == 'boolean') cci.result = 0;

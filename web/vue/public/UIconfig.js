@@ -5,7 +5,6 @@
 // see https://gekko.wizb.it/docs/installation/installing_gekko_on_a_server.html#Configuring-Gekko
 
 const CONFIG = {
-  headless: false,
   api: {
     host: '127.0.0.1',
     port: 3000,

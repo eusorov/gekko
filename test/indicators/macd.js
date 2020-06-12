@@ -48,7 +48,7 @@ describe('indicators/MACD', function() {
     var macd = new MACD({short: 12, long: 26, signal: 9});
     _.each(prices, function(p, i) {
       macd.update(p);
-      expect(macd.result).to.equal(verified_macd12v26v9result[i]);
+      expect(macd.result.macd).to.equal(verified_macd12v26v9result[i]);
     });
   });
 
@@ -86,15 +86,4 @@ describe('indicators/PPO', function() {
       expect(ppo.result.PPOhist).to.equal(verified_ppo12v26v9hist[i]);
     });
   });
-});
-
-xdescribe('indicators/DEMA', function() {
-
-  var DEMA = require(INDICATOR_PATH + 'DEMA');
-
-  xit('should correctly calculate DEMAs', function() {
-    // TODO!
-  });
-
-
 });

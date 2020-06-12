@@ -11,6 +11,7 @@
         router-link(to='/backtest').py1 Backtest
         router-link(to='/data').py1 Local data
         router-link(to='/config').py1 Config
+        router-link(to='/backtests').py1 Backtests
         router-link(to='/login' v-if="!isLoggedIn").py1 Login
         a(v-on:click="logout" v-if="isLoggedIn").py1 Logout
 

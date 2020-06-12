@@ -9,6 +9,8 @@ Vue.use(VueRouter);
 import store from './store'
 
 import backtester from './components/backtester/backtester.vue'
+import backtestlist from './components/backtestshow/backtestlist.vue'
+import singleBacktest from './components/backtestshow/singleBacktest.vue'
 import home from './components/layout/home.vue'
 
 import data from './components/data/data.vue'
@@ -32,6 +34,8 @@ const router = new VueRouter({
     { path: '/', redirect: '/login' },
     { path: '/home', component: home },
     { path: '/backtest', component: backtester , meta: {  requiresAuth: true   } },
+    { path: '/backtests', component: backtestlist , meta: {  requiresAuth: true   } },
+    { path: '/backtests/:id', component: singleBacktest, meta: {  requiresAuth: true   }  },
     { path: '/config', component: config, meta: {  requiresAuth: true   }  },
     { path: '/data', component: data, meta: {  requiresAuth: true   }  },
     { path: '/data/importer', component: importer, meta: {  requiresAuth: true   }  },

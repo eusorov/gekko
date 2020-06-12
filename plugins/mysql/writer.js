@@ -8,6 +8,7 @@ var util = require('../../core/util.js');
 var config = util.getConfig();
 var mysqlUtil = require('./util');
 var resilient = require('./resilient');
+var crypto =  require('crypto');
 
 var Store = function(done) {
   _.bindAll(this);
@@ -79,6 +80,19 @@ Store.prototype.upsertTables = function() {
     `CREATE TABLE IF NOT EXISTS telegramsub
     (
       chatid VARCHAR(60) PRIMARY KEY
+    );`,
+    `CREATE TABLE IF NOT EXISTS backtest
+    (
+      id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+      method VARCHAR(20) NOT NULL,
+      asset  VARCHAR(5) NOT NULL,
+      currency VARCHAR(5) NOT NULL,
+      datefrom INT UNSIGNED NOT NULL,
+      dateto INT UNSIGNED NOT NULL,
+      confighash VARCHAR(255) NOT NULL,
+      config LONGTEXT NOT NULL,
+      backtest LONGTEXT NOT NULL,
+      UNIQUE (method, asset, currency, datefrom, dateto, confighash)
     );`
   ];
 
@@ -95,10 +109,7 @@ Store.prototype.writeCandles = async function(cache) {
   }
 
   try {
-    let queryStr1 = `DELETE FROM ${mysqlUtil.table('candles',this.watch)} WHERE start >= '${cache[0].start.unix()}' AND start <= '${cache[cache.length-1].start.unix()}'`;
-    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr1).catch((err) => {log.debug(err)}), 5000);
-
-    var queryStr = `INSERT INTO ${mysqlUtil.table('candles',this.watch)} (start, open, high,low, close, vwp, volume, trades) VALUES ? `;
+    var queryStr = `INSERT INTO ${mysqlUtil.table('candles',this.watch)} (start, open, high,low, close, vwp, volume, trades) VALUES ? ON DUPLICATE KEY UPDATE open = open, high = high,low = low, close = close, vwp = vwp, volume = volume, trades = trades`;
     let candleArrays = cache.map((c) => [c.start.unix(), c.open, c.high, c.low, c.close, c.vwp, c.volume, c.trades]);
 
     log.debug('writing: ' + cache.length + ' '+cache[0].start.format() +' - '+ cache[cache.length-1].start.format());
@@ -229,7 +240,7 @@ Store.prototype.writeTrade = async function(trade) {
     await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
 
   }catch(err){
-    log.error("Error while inserting gekkos: "); log.error(err);
+    log.error("Error while inserting trade: "); log.error(err);
   }
 }
 
@@ -256,8 +267,61 @@ Store.prototype.deleteTelegramSubscriber = async function(chatid) {
   try {
     await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr1).catch((err) => {log.debug(err)}), 5000);
   }catch(err){
-    log.error("Error while deleting gekkos/trades: "); log.error(err);
+    log.error("Error while deleting telegram subscriber: "); log.error(err);
   }
+}
+
+Store.prototype.writeBacktest = async function(backtest, config) {
+  if (!backtest)
+    return;
+
+  var from = moment.utc(config.backtest.daterange.from,  "YYYY-MM-DD");
+  var to = moment.utc(config.backtest.daterange.to,  "YYYY-MM-DD");
+
+  //deep copy
+  var configDb = JSON.parse(JSON.stringify(config));
+  delete configDb.mysql; 
+
+  //create sha256 hash vor comparing. We cannot put TEXT - column in index. So we put hash!
+  const hash = crypto.createHash('sha256').update(JSON.stringify(configDb)).digest('base64');
+  
+  let queryStr = `INSERT INTO backtest (method, asset, currency, datefrom, dateto, confighash, config, backtest) 
+        VALUES ( '${config.tradingAdvisor.method}', 
+                 '${config.watch.asset}', 
+                 '${config.watch.currency}', 
+                  ${from.unix()}, 
+                  ${to.unix()},
+                 '${hash}',
+                 '${JSON.stringify(configDb)}',
+                 '${JSON.stringify(backtest)}'
+                 )
+                 ON DUPLICATE KEY UPDATE backtest = '${JSON.stringify(backtest)}'
+    
+     `;
+  try {
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+
+  }catch(err){
+    log.error("Error while inserting gekkos: "); log.error(err);
+  }
+
+  return;
+}
+
+Store.prototype.deleteBacktestById = async function(id) {
+  if (!id){
+    return;
+  }
+
+  let queryStr = `DELETE FROM backtest WHERE id = ? `;
+  try {
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [id]).catch((err) => {log.debug(err)}), 5000);
+
+    return;
+  }catch(err){
+    log.error("Error while deleting backtest: "); log.error(err);
+    return err;
+  } 
 }
 
 module.exports = Store;

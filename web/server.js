@@ -83,6 +83,9 @@ router.get('/api/info', require(ROUTE('info')));
 router.get('/api/strategies', require(ROUTE('strategies')));
 router.get('/api/configPart/:part', require(ROUTE('configPart')));
 router.get('/api/apiKeys', apiKeys.get);
+router.get('/api/backtests', require(ROUTE('getBacktests')));
+router.get('/api/backtests/:id', require(ROUTE('getBacktest')));
+router.delete('/api/backtests/:id', require(ROUTE('deleteBacktest')));
 
 const listWraper = require(ROUTE('list'));
 router.get('/api/imports', listWraper('imports'));
@@ -114,11 +117,14 @@ app.use(compress({
 
 app
   .use(cors())
-  .use(serve(WEBROOT + 'vue/dist'))
   .use(bodyParser())
   .use(require('koa-logger')())
   .use(router.routes())
   .use(router.allowedMethods());
+
+if (process.env.NODE_ENV!='test') {
+  app.use(serve(WEBROOT + 'vue/dist'));
+}
 server.timeout = config.api.timeout || 120000;
 server.on('request', app.callback());
 server.listen({port : process.env.PORT} , () => {
@@ -135,10 +141,12 @@ server.listen({port : process.env.PORT} , () => {
 
   // only open a browser when running `node gekko`
   // this prevents opening the browser during development
-  if(!isDevServer && !config.headless) {
+  if(process.env.NODE_ENV!='test') {
     opn(location)
       .catch(err => {
         console.log('Something went wrong when trying to open your web browser. UI is running on ' + location + '.');
     });
   }
 });
+
+module.exports = server;
