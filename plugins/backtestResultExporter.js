@@ -129,10 +129,9 @@ BacktestResultExporter.prototype.finalize = async function(done) {
   const backtestSmall = {
     roundtrips : backtest.roundtrips,
     trades : backtest.trades,
-    performanceReport : backtest.performanceReport
   } 
 
-  await this.writer.writeBacktest(backtestSmall, config);
+  await this.writer.writeBacktest(backtestSmall, config, backtest.performanceReport);
   done();
 };
 

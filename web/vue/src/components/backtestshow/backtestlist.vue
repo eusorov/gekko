@@ -21,7 +21,7 @@
           td {{ fmt(backtest.dateto) }}
           td {{ backtest.method }}
           td
-            div {{ round(profit(backtest.backtest.performanceReport)) }} %
+            div {{ round(profit(backtest.performance)) }} %
           td
             a(v-on:click.stop='deleteBacktest(backtest.id)', class='w100--s my1 btn--red') delete
 </template>

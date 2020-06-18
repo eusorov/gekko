@@ -2,7 +2,7 @@
   div(v-if = 'backtest')
     .hr.contain
     div.contain
-      performanceSummary(:report = 'backtest.backtest.performanceReport', :config='backtest.config', :roundtrips='backtest.backtest.roundtrips', :trades='backtest.backtest.trades')
+      performanceSummary(:config='backtest.config', :roundtrips='backtest.backtest.roundtrips', :trades='backtest.backtest.trades', :report ='backtest.performance')
     .hr.contain
     div.contain
       chart(:roundtrips='backtest.backtest.roundtrips', :config='backtest.config')

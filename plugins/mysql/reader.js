@@ -242,7 +242,7 @@ Reader.prototype.getTelegramSubscribers = async function(next) {
 
 Reader.prototype.getBacktests = async function(next) {
 
-  var queryStr = `select id, method, asset, currency, datefrom, dateto, config, backtest FROM backtest `;
+  var queryStr = `select id, method, asset, currency, datefrom, dateto, config, backtest, performance FROM backtest `;
 
   try {
     const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
@@ -250,6 +250,7 @@ Reader.prototype.getBacktests = async function(next) {
     rows.forEach((row) => {
       row.config = JSON.parse(row.config);
       row.backtest = JSON.parse(row.backtest);
+      row.performance = JSON.parse(row.performance);
       rowsResturn.push(row);
     })
 
@@ -262,7 +263,7 @@ Reader.prototype.getBacktests = async function(next) {
 
 Reader.prototype.getBacktestById = async function(id, next) {
 
-  var queryStr = "select config, backtest FROM backtest where id = ? ";
+  var queryStr = "select config, backtest, performance FROM backtest where id = ? ";
 
   try {
     const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [id]).catch((err) => {log.debug(err)}), 5000);
@@ -270,6 +271,7 @@ Reader.prototype.getBacktestById = async function(id, next) {
     rows.forEach((row) => {
       row.config = JSON.parse(row.config);
       row.backtest = JSON.parse(row.backtest);
+      row.performance = JSON.parse(row.performance);
       rowsResturn.push(row);
     })
 

@@ -92,6 +92,7 @@ Store.prototype.upsertTables = function() {
       confighash VARCHAR(255) NOT NULL,
       config LONGTEXT NOT NULL,
       backtest LONGTEXT NOT NULL,
+      performance LONGTEXT NOT NULL,
       UNIQUE (method, asset, currency, datefrom, dateto, confighash)
     );`
   ];
@@ -271,7 +272,7 @@ Store.prototype.deleteTelegramSubscriber = async function(chatid) {
   }
 }
 
-Store.prototype.writeBacktest = async function(backtest, config) {
+Store.prototype.writeBacktest = async function(backtest, config, performanceReport) {
   if (!backtest)
     return;
 
@@ -282,10 +283,12 @@ Store.prototype.writeBacktest = async function(backtest, config) {
   var configDb = JSON.parse(JSON.stringify(config));
   delete configDb.mysql; 
 
+  //save performanceReport extra
+
   //create sha256 hash vor comparing. We cannot put TEXT - column in index. So we put hash!
   const hash = crypto.createHash('sha256').update(JSON.stringify(configDb)).digest('base64');
   
-  let queryStr = `INSERT INTO backtest (method, asset, currency, datefrom, dateto, confighash, config, backtest) 
+  let queryStr = `INSERT INTO backtest (method, asset, currency, datefrom, dateto, confighash, config, backtest, performance) 
         VALUES ( '${config.tradingAdvisor.method}', 
                  '${config.watch.asset}', 
                  '${config.watch.currency}', 
@@ -293,7 +296,8 @@ Store.prototype.writeBacktest = async function(backtest, config) {
                   ${to.unix()},
                  '${hash}',
                  '${JSON.stringify(configDb)}',
-                 '${JSON.stringify(backtest)}'
+                 '${JSON.stringify(backtest)}',
+                 '${JSON.stringify(performanceReport)}'
                  )
                  ON DUPLICATE KEY UPDATE backtest = '${JSON.stringify(backtest)}'
     
