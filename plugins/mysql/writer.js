@@ -90,9 +90,9 @@ Store.prototype.upsertTables = function() {
       datefrom INT UNSIGNED NOT NULL,
       dateto INT UNSIGNED NOT NULL,
       confighash VARCHAR(255) NOT NULL,
-      config LONGTEXT NOT NULL,
-      backtest LONGTEXT NOT NULL,
-      performance LONGTEXT NOT NULL,
+      config JSON NOT NULL,
+      backtest JSON NOT NULL,
+      performance JSON NOT NULL,
       UNIQUE (method, asset, currency, datefrom, dateto, confighash)
     );`
   ];
@@ -289,21 +289,14 @@ Store.prototype.writeBacktest = async function(backtest, config, performanceRepo
   const hash = crypto.createHash('sha256').update(JSON.stringify(configDb)).digest('base64');
   
   let queryStr = `INSERT INTO backtest (method, asset, currency, datefrom, dateto, confighash, config, backtest, performance) 
-        VALUES ( '${config.tradingAdvisor.method}', 
-                 '${config.watch.asset}', 
-                 '${config.watch.currency}', 
-                  ${from.unix()}, 
-                  ${to.unix()},
-                 '${hash}',
-                 '${JSON.stringify(configDb)}',
-                 '${JSON.stringify(backtest)}',
-                 '${JSON.stringify(performanceReport)}'
-                 )
-                 ON DUPLICATE KEY UPDATE backtest = '${JSON.stringify(backtest)}'
-    
-     `;
+        VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE backtest = ? `;
+
+  const values = [config.tradingAdvisor.method, config.watch.asset, config.watch.currency, from.unix(), to.unix(),hash,
+                 JSON.stringify(configDb), JSON.stringify(backtest), JSON.stringify(performanceReport), JSON.stringify(backtest)]
+
   try {
-    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+    //await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, values).catch((err) => {log.debug(err)}), 5000);
+    await this.dbpromise.query(queryStr, values);
 
   }catch(err){
     log.error("Error while inserting gekkos: "); log.error(err);

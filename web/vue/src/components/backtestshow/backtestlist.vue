@@ -6,20 +6,18 @@
     table.full(v-if='backtests.length')
       thead
         tr
-          th cur
-          th asset
-          th from
-          th to
+          th pair
+          th date range
           th method
+          th candlesize
           th profit
           th action
       tbody
         tr(v-for='backtest in backtests', v-on:click='$router.push({path: `/backtests/${backtest.id}`})'  )
-          td {{ backtest.currency }}
-          td {{ backtest.asset }}
-          td {{ fmt(backtest.datefrom) }}
-          td {{ fmt(backtest.dateto) }}
+          td {{ backtest.currency }}-{{ backtest.asset }}
+          td {{ fmt(backtest.datefrom) }} - {{ fmt(backtest.dateto) }}
           td {{ backtest.method }}
+          td {{ backtest.config.tradingAdvisor.candleSize }}
           td
             div {{ round(profit(backtest.performance)) }} %
           td

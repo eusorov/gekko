@@ -12,6 +12,16 @@
                     <div>{{ humanizeLocal(config.backtest.daterange.from)}} - {{humanizeEndtime(config.backtest.daterange.to)}}</div>
                 </div>
             </div>
+            <div class="grd-row-col-3-6">
+                <div class="summary">
+                    <div>Method</div> 
+                    <div>{{config.tradingAdvisor.method}}</div>
+                    <div>Candle size:</div> 
+                    <div>{{config.tradingAdvisor.candleSize}}</div>
+                    <div>History size:</div> 
+                    <div>{{config.tradingAdvisor.historySize}}</div>
+                </div>
+            </div>            
         </div>
         <p>
         <div class="grd-row">

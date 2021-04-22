@@ -246,15 +246,7 @@ Reader.prototype.getBacktests = async function(next) {
 
   try {
     const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
-    const rowsResturn = [];
-    rows.forEach((row) => {
-      row.config = JSON.parse(row.config);
-      row.backtest = JSON.parse(row.backtest);
-      row.performance = JSON.parse(row.performance);
-      rowsResturn.push(row);
-    })
-
-    return next(null, rowsResturn);
+    return next(null, rows);
   }catch(err){
     log.error("Error while reading backtest: "); log.error(err);
     next(err);
@@ -266,16 +258,8 @@ Reader.prototype.getBacktestById = async function(id, next) {
   var queryStr = "select config, backtest, performance FROM backtest where id = ? ";
 
   try {
-    const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [id]).catch((err) => {log.debug(err)}), 5000);
-    const rowsResturn = [];
-    rows.forEach((row) => {
-      row.config = JSON.parse(row.config);
-      row.backtest = JSON.parse(row.backtest);
-      row.performance = JSON.parse(row.performance);
-      rowsResturn.push(row);
-    })
-
-    return next(null, rowsResturn);
+    const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [id]).catch((err) => {log.debug(err)}), 5000);   
+    return next(null, rows);
   }catch(err){
     log.error("Error while reading backtest: "); log.error(err);
     next(err);

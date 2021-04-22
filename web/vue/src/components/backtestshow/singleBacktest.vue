@@ -6,6 +6,9 @@
     .hr.contain
     div.contain
       chart(:roundtrips='backtest.backtest.roundtrips', :config='backtest.config')
+    div.contain
+      strong Parameters for {{backtest.config.tradingAdvisor.method}}
+    div.contain {{parameters}}
 </template>
 
 <script>
@@ -20,7 +23,7 @@
     name: 'singleBacktest',
     data: () => {
       return {
-       backtest: null  
+       backtest: null 
       }
     },
     components: {
@@ -35,8 +38,9 @@
       config: function() {
         return _.get(this, 'backtest.config');
       },
-      tradingAdvisor: function() {
-        return _.get(this, 'backtest.config.tradingAdvisor');
+      parameters: function() {
+        const stratParameters = this.backtest.config[this.backtest.config.tradingAdvisor.method];
+        return stratParameters;
       },
     },
     mounted: function() {
