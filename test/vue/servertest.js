@@ -41,7 +41,9 @@ const mocks = {
     }
   }, 
   performanceReport : { perfomance : 100 },
-  gekko_test_id : 'test_123_gekko'
+  gekko_test_id : 'test_123_gekko',
+  trades: [{date: moment('2021-04-20T20:03:00.000Z'), action: 'buy', amount: 10},
+           {date: moment('2021-04-21T20:03:00.000Z'), action: 'sell', amount: 10}]
 }
 
 describe('routes : /api', () => {
@@ -53,6 +55,8 @@ describe('routes : /api', () => {
     await this.writer.writeIndicatorResult(mocks.gekko_test_id, indicatorResult, false);
     await this.writer.writeGekko(mocks.gekko_test_id, { teststate: 'test'});
 
+    await this.writer.writeTrade(mocks.gekko_test_id, mocks.trades[0]);
+    await this.writer.writeTrade(mocks.gekko_test_id, mocks.trades[1]);
   })
 
   after(async()=> {
@@ -125,7 +129,6 @@ describe('routes : /api', () => {
     });    
   
     it('should get gekkos', (done) => {
-
       this.reader.getGekkos((err, rows)=> {
         should.not.exist(err);
         rows.should.be.a('array');
@@ -135,4 +138,14 @@ describe('routes : /api', () => {
         });
       });
   })
+
+  it('should get trades', (done) => {
+    this.reader.getTradesByGekkoId(mocks.gekko_test_id, (err, rows)=> {
+      should.not.exist(err);
+      rows.should.be.a('array');
+      rows.length.should.equal(2);
+      rows[0].gekko_id.should.equal(mocks.gekko_test_id)
+      done();
+      });
+    });
 })

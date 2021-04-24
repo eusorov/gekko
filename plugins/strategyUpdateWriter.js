@@ -22,7 +22,7 @@ StrategyUpdateWriter.prototype.processStratUpdate = function(stratUpdate) {
 }
 
 StrategyUpdateWriter.prototype.processTradeCompleted = function(trade) {
-  this.writer.writeTrade(trade)
+  this.writer.writeTrade(config.gekko_id, trade)
 }
 
 StrategyUpdateWriter.prototype.finalize = function(done) {

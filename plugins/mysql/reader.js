@@ -216,7 +216,6 @@ Reader.prototype.getGekkos = async function(next) {
     log.error("Error while reading gekkos: "); log.error(err);
     next(err);
   }
-
 }
 
 Reader.prototype.getTelegramSubscribers = async function(next) {
@@ -259,6 +258,19 @@ Reader.prototype.getBacktestById = async function(id, next) {
     next(err);
   }
 
+}
+
+Reader.prototype.getTradesByGekkoId = async function(gekko_id, next) {
+
+  const queryStr = `select gekko_id, date, trade FROM trades where gekko_id = ? `;
+
+  try {
+    const [rows] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [gekko_id]).catch((err) => {log.debug(err)}), 5000);
+    return next(null, rows);
+  }catch(err){
+    log.error("Error while reading trades: "); log.error(err);
+    next(err);
+  }
 }
 
 module.exports = Reader;
