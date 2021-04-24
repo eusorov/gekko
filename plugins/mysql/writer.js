@@ -61,14 +61,13 @@ Store.prototype.upsertTables = function() {
       result JSON NOT NULL,
       UNIQUE (gekko_id, date)
     );`,
-    // TODO state as JSON
     `CREATE TABLE IF NOT EXISTS gekkos
     (
       id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
       gekko_id VARCHAR(60) NOT NULL,
       date INT UNSIGNED NOT NULL,
-      state MEDIUMTEXT NOT NULL,
-      UNIQUE (gekko_id, date)
+      state JSON NOT NULL,
+      UNIQUE (gekko_id)
     );`,
     // TODO trade as JSON?
     `CREATE TABLE IF NOT EXISTS trades
@@ -203,19 +202,10 @@ Store.prototype.writeGekko = async function(id, state) {
 
   const date = moment.utc().unix();
 
-  let queryStr = `select gekko_id FROM gekkos WHERE gekko_id = '${id}'`;
-
+  const queryStr = `INSERT INTO gekkos (gekko_id, date, state) VALUES ( ?, ?, ?) ON DUPLICATE KEY UPDATE state = ?`;
+  
   try {
-    const [rows] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
-    if (rows.length >=1) { //update
-      queryStr = `UPDATE gekkos SET state = '${JSON.stringify(state)}'
-        WHERE gekko_id = '${id}'   `;
-    }else{
-      queryStr = `INSERT INTO gekkos (gekko_id, date, state) VALUES ( '${id}', ${date}, '${JSON.stringify(state)}')
-         ON DUPLICATE KEY UPDATE state = '${JSON.stringify(state)}'
-         `;
-    }
-    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+    await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [id, date, JSON.stringify(state), JSON.stringify(state)]).catch((err) => {log.debug(err)}), 5000);
 
   }catch(err){
     log.error("Error while inserting gekkos: "); log.error(err);

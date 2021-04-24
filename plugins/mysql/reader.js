@@ -210,14 +210,8 @@ Reader.prototype.getGekkos = async function(next) {
   var queryStr = `select gekko_id, date, state FROM gekkos `;
 
   try {
-    const [rows, fields] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
-    const rowsResturn = [];
-    rows.forEach((row) => {
-      row.state = JSON.parse(row.state);
-      rowsResturn.push(row);
-    })
-
-    return next(null, rowsResturn);
+    const [rows] =  await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr).catch((err) => {log.debug(err)}), 5000);
+    return next(null, rows);
   }catch(err){
     log.error("Error while reading gekkos: "); log.error(err);
     next(err);

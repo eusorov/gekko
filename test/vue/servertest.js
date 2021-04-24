@@ -40,10 +40,9 @@ const mocks = {
       password :'123456'
     }
   }, 
-  performanceReport : { perfomance : 100 }
+  performanceReport : { perfomance : 100 },
+  gekko_test_id : 'test_123_gekko'
 }
-
-const gekko_test_id = 'test_123_gekko';
 
 describe('routes : /api', () => {
   before(async () => {
@@ -51,7 +50,8 @@ describe('routes : /api', () => {
     await this.writer.writeBacktest(mocks.backtest, mocks.config, mocks.performanceReport);
     
     const indicatorResult = { date: '2021-01-01', indicators : [{res : 10}]};
-    await this.writer.writeIndicatorResult(gekko_test_id, indicatorResult, false);
+    await this.writer.writeIndicatorResult(mocks.gekko_test_id, indicatorResult, false);
+    await this.writer.writeGekko(mocks.gekko_test_id, { teststate: 'test'});
 
   })
 
@@ -106,9 +106,9 @@ describe('routes : /api', () => {
       const from = moment('2021-01-01').unix();
       const to = moment('2021-01-02').unix();
 
-      this.reader.getIndicatorResults(gekko_test_id, from, to, (err, rows)=> {
-        const id = rows[0].id;
-        const config = { gekko_id: gekko_test_id, daterange : {from: '2020-01-01', to: '2021-01-02'}}
+      this.reader.getIndicatorResults(mocks.gekko_test_id, from, to, (err, rows)=> {
+        const gekko_id = rows[0].gekko_id;
+        const config = { gekko_id: mocks.gekko_test_id, daterange : {from: '2020-01-01', to: '2021-01-02'}}
         chai.request(server)
         .post('/api/getIndicatorResults')
         .send({...mocks.config, ...config})
@@ -117,11 +117,22 @@ describe('routes : /api', () => {
           res.should.be.json;
           res.body.should.be.a('array');
           res.body.length.should.equal(1)
+          res.body[0].gekko_id.should.equal(gekko_id)
           res.status.should.eql(200);
           done();
         });
       });
     });    
   
+    it('should get gekkos', (done) => {
+
+      this.reader.getGekkos((err, rows)=> {
+        should.not.exist(err);
+        rows.should.be.a('array');
+        rows.length.should.equal(1);
+        rows[0].gekko_id.should.equal(mocks.gekko_test_id)
+        done();
+        });
+      });
   })
 })

@@ -37,7 +37,9 @@ Loader.prototype.load = function (_next) {
       this.reader.close();
 
       const indicatorResults = data.map(indicatorResult => {
-        return {
+        return { 
+          id : indicatorResult.id,
+          gekko_id : indicatorResult.gekko_id,
           date: indicatorResult.date,
           indicators : indicatorResult.result
         }
