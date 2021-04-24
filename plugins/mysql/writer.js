@@ -58,9 +58,10 @@ Store.prototype.upsertTables = function() {
       id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
       gekko_id VARCHAR(60) NOT NULL,
       date INT UNSIGNED NOT NULL,
-      result TEXT NOT NULL,
+      result JSON NOT NULL,
       UNIQUE (gekko_id, date)
     );`,
+    // TODO state as JSON
     `CREATE TABLE IF NOT EXISTS gekkos
     (
       id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -69,6 +70,7 @@ Store.prototype.upsertTables = function() {
       state MEDIUMTEXT NOT NULL,
       UNIQUE (gekko_id, date)
     );`,
+    // TODO trade as JSON?
     `CREATE TABLE IF NOT EXISTS trades
     (
       id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -147,18 +149,20 @@ Store.prototype.finalize = function(done) {
   this.writeCandles(this.cache).then(() => done());
 }
 
+/**
+ * write cache to db , only used internal 
+ * 
+ * @param {*} indicatorResultCache 
+ * @returns 
+ */
+Store.prototype.writeIndicatorResults = async function(gekko_id, indicatorResultCache) {
 
-Store.prototype.writeIndicatorResults = async function(indicatorResultCache) {
   if(_.isEmpty(indicatorResultCache)){
     return;
   }
 
-//  const date = moment.utc(indicatorResult.date).unix();
-//  var queryStr = `INSERT INTO ${mysqlUtil.table('iresults',this.watch)} (gekko_id, date, result) VALUES ( '${this.config.gekko_id}', ${date}, '${JSON.stringify(indicatorResult.indicators)}')
-//     ON DUPLICATE KEY UPDATE result = '${JSON.stringify(indicatorResult.indicators)}'
-//  `;
   var queryStr = `INSERT INTO ${mysqlUtil.table('iresults',this.watch)} (gekko_id, date, result) VALUES ? ON DUPLICATE KEY UPDATE result = result`;
-  let valueArrays = indicatorResultCache.map((indicatorResult) => [this.config.gekko_id, moment.utc(indicatorResult.date).unix(), JSON.stringify(indicatorResult.indicators)]);
+  let valueArrays = indicatorResultCache.map((indicatorResult) => [gekko_id, moment.utc(indicatorResult.date).unix(), JSON.stringify(indicatorResult.indicators)]);
 
   try {
     await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, [valueArrays]).catch((err) => {log.debug(err)}), 5000);
@@ -167,12 +171,23 @@ Store.prototype.writeIndicatorResults = async function(indicatorResultCache) {
   }
 
 }
-Store.prototype.writeIndicatorResult = async function(indicatorResult) {
-  if (!this.config.gekko_id)
+
+/**
+ * write indicatorResult to cache and than write every 1sec tick to db;
+ * 
+ * @param {*} indicatorResult 
+ * @returns 
+ */
+Store.prototype.writeIndicatorResult = async function(gekko_id, indicatorResult, usecase = true) {
+  if (!gekko_id)
     return;
 
-  if(_.isEmpty(this.indicatorResultCache)){
-    setTimeout(()=> { this.writeIndicatorResults(this.indicatorResultCache); this.indicatorResultCache = [];  }, this.tickrate*1000);
+  if(_.isEmpty(this.indicatorResultCache) && usecase){
+    setTimeout(()=> { this.writeIndicatorResults(gekko_id, this.indicatorResultCache); this.indicatorResultCache = [];  }, this.tickrate*1000);
+  }else {
+    // for testing write immidiately
+    this.writeIndicatorResults(gekko_id, [indicatorResult])
+    return;
   }
 
   this.indicatorResultCache.push(indicatorResult);
@@ -295,7 +310,6 @@ Store.prototype.writeBacktest = async function(backtest, config, performanceRepo
                  JSON.stringify(configDb), JSON.stringify(backtest), JSON.stringify(performanceReport), JSON.stringify(backtest)]
 
   try {
-    //await resilient.callFunctionWithIntervall(60, ()=> this.dbpromise.query(queryStr, values).catch((err) => {log.debug(err)}), 5000);
     await this.dbpromise.query(queryStr, values);
 
   }catch(err){

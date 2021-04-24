@@ -8,7 +8,10 @@ const base = require('./baseConfig');
 
 module.exports = async function (ctx) {
 
-  config = {};
+  const config = {};
   _.merge(config, base, ctx.request.body);
-  ctx.body = await loadIndicatorResults(config);
+
+  const {gekko_id} = ctx.request.body;
+
+  ctx.body = await loadIndicatorResults(gekko_id, config);
 }

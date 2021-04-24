@@ -4,10 +4,11 @@ const util = require('../../core/util');
 const dirs = util.dirs();
 const log = require('../log');
 
-var Loader = function (config) {
+var Loader = function (gekko_id, config) {
   _.bindAll(this);
 
   this.config = config;
+  this.gekko_id = gekko_id;
 
   const adapter = config[config.adapter];
   const Reader = require(dirs.gekko + adapter.path + '/reader');
@@ -24,6 +25,7 @@ Loader.prototype.load = function (_next) {
   const next = _.once(_next);
 
   this.reader.getIndicatorResults(
+    this.gekko_id,
     this.from.unix(),
     this.to.unix(),
     (err, data) => {
@@ -35,13 +37,11 @@ Loader.prototype.load = function (_next) {
       this.reader.close();
 
       const indicatorResults = data.map(indicatorResult => {
-
         return {
           date: indicatorResult.date,
           indicators : indicatorResult.result
         }
       });
-
 
       next(indicatorResults);
     }

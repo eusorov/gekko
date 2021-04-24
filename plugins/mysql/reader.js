@@ -174,26 +174,26 @@ Reader.prototype.getBoundry = async function(next) {
     next(err);
   }
 }
-
-Reader.prototype.getIndicatorResults = async function(from, to, next) {
-  if (!this.config.gekko_id){
+/**
+ * get indicator results for specific gekko_id (backtest or live) to display them in UI
+ *  
+ */
+Reader.prototype.getIndicatorResults = async function(gekko_id, from, to, next) {
+  if (!gekko_id){
     return next("gekko_id is required", null);
   }
   const queryStr = `
     SELECT * from ${mysqlUtil.table('iresults', this.watch)}
-    WHERE date <= ${to} AND date >= ${from} AND gekko_id = '${this.config.gekko_id}'
+    WHERE date <= ? AND date >= ? AND gekko_id = ?
     ORDER BY date ASC
     `;
 
-  try{
-    const [rows, fields] = await resilient.callFunctionWithIntervall(60, () => this.dbpromise.query(queryStr).catch((err) => {}), 5000);
-    const rowsResturn = [];
-    rows.forEach((row) => {
-      row.result = JSON.parse(row.result);
-      rowsResturn.push(row);
-    })
+  const values = [to, from, gekko_id];
 
-    next(null, rowsResturn);
+  try{
+    const [rows] = await resilient.callFunctionWithIntervall(60, () => this.dbpromise.query(queryStr, values).catch((err) => {console.log(err)}), 5000);
+    next(null, rows);
+
   }catch(err){
       // we have permanent error
     log.error(err);

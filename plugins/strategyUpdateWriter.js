@@ -18,7 +18,7 @@ var StrategyUpdateWriter = function(done) {
   stratUpdate [{date: xxx, indicators: {ind1: result, ind2: result}}]
 */
 StrategyUpdateWriter.prototype.processStratUpdate = function(stratUpdate) {
-  this.writer.writeIndicatorResult(stratUpdate)
+  this.writer.writeIndicatorResult(config.gekko_id, stratUpdate)
 }
 
 StrategyUpdateWriter.prototype.processTradeCompleted = function(trade) {

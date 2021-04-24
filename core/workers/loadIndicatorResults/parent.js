@@ -1,7 +1,7 @@
 const fork = require('child_process').fork;
 const _ = require('lodash');
 
-module.exports = (config, callback) => {
+module.exports = (gekko_id, config, callback) => {
   var debug = typeof v8debug === 'object';
   if (debug) {
     process.execArgv = [];
@@ -11,6 +11,7 @@ module.exports = (config, callback) => {
 
   const message = {
     what: 'start',
+    gekko_id,
     config
   }
 
