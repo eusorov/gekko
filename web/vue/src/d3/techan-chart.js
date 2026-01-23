@@ -97,7 +97,7 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
             if (configChart && configChart.type === "stochastic"){
                     result.middle = 50;
                     result.overbought = configIndicators[name].thresholds.up;
-                    result.oversold = configIndicators[name].thresholds.buy.strong_down;
+                    result.oversold = configIndicators[name].thresholds.down;
                     result.stochasticD = !isNaN(+val.stochK) ? +val.stochK : null;
                     result.stochasticK = !isNaN(+val.stochD) ? +val.stochD : null;
             } if (configChart && configChart.type === "bollinger") {
@@ -487,12 +487,12 @@ export default function(_data, _trades, _indicatorResults, _height, _config) {
         trade.dateoriginal = t.date;
         trade.high = trade.price;
         trade.low = trade.price;
-        trade.adviceProps = t.adviceProps;
+            trade.adviceProps = t.adviceProps;
         // console.log((moment.unix(t.date)).utc().format("YYYY-MM-DD HH:mm") + ' '+trade.date  + ' '+(offset))
         return trade;
     });
 
-    //console.log(trades);
+    console.log(trades);
 
     svg.select("g.candlestick").datum(data).call(candlestick);
     svg.select("g.close.annotation").datum([data[data.length-1]]).call(closeAnnotation);

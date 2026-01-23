@@ -1,23 +1,26 @@
 // global window.CONFIG
 
 const config = window.CONFIG.ui;
-const endpoint = `${config.host}`;
 
 let basePath, restPath, wsPath;
 
+const host = process.env.VUE_APP_HOST || config.host;
+const port = process.env.VUE_APP_PORT || config.port;
+const ssl = (process.env.VUE_APP_SSL === 'true') || config.ssl;
+
 // rest API path
-if(process.env.VUE_APP_SSL === 'true') {
-  basePath = `https://${process.env.VUE_APP_HOST}${config.path}`;
+if(ssl) {
+  basePath = `https://${host}${config.path}`;
 } else {
-    basePath = `http://${process.env.VUE_APP_HOST}:${process.env.VUE_APP_PORT}${config.path}`;
+  basePath = `http://${host}:${port}${config.path}`;
 }
 
 restPath = basePath + 'api/';
 // ws API path
-if(process.env.VUE_APP_SSL === 'true') {
-  wsPath = `wss://${process.env.VUE_APP_HOST}${config.path}api`;
+if(ssl) {
+  wsPath = `wss://${host}${config.path}api`;
 } else {
-    wsPath = `ws://${process.env.VUE_APP_HOST}:${process.env.VUE_APP_PORT}${config.path}api`;
+  wsPath = `ws://${host}:${port}${config.path}api`;
 }
 
 export {
