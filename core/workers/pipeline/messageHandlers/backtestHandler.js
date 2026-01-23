@@ -6,7 +6,11 @@ module.exports = done => {
   return {
     message: message => {
       if(message.type === 'error') {
-        done(message.error);
+        if (typeof message.error === 'string') {
+            done(new Error(message.error));
+        } else {
+            done(message.error);
+        }
       }
 
       if(message.backtest) {
@@ -18,7 +22,7 @@ module.exports = done => {
         if(backtest)
           console.error('Child process died after finishing backtest');
         else
-          done('Child process has died.');
+          done(new Error('Child process has died.'));
       }
     }
   }

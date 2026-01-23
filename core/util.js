@@ -90,11 +90,13 @@ var util = {
     else
       instanceName = 'This Gekko instance';
 
+    console.log(m);
     if(m) {
       if(soft) {
         log(JSON.stringify(m));
         log('\n ERROR: ' + m + '\n\n');
       } else {
+        log(JSON.stringify(m));
         log(`\n${instanceName} encountered an error and cant continue`);
         log('\nError:\n');
         log(m, '\n\n');

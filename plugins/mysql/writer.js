@@ -277,7 +277,7 @@ Store.prototype.deleteTelegramSubscriber = async function(chatid) {
   }
 }
 
-Store.prototype.writeBacktest = async function(backtest, config, performanceReport) {
+Store.prototype.writeBacktest = async function(backtest, config, performanceReport = {}) {
   if (!backtest)
     return;
 

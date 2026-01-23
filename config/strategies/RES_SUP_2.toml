@@ -14,6 +14,8 @@ optInSlowDPeriod=9
 up=80
 down=20
 cross_in_last_days=11
+[stochasticTulip.thresholds.buy]
+strong_down=20
 [stochasticTulip.chart]
 showInExtraWindow = true
 color = "blue"
@@ -148,4 +150,4 @@ type = "macd"
 nearSmaProcent = 2
 breakSmaProcent = 6
 breakSmaBullMarket = 100
-breakSmaBearMarket = 180
+breakSmaBearMarket = 180 

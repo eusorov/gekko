@@ -12,7 +12,7 @@ module.exports = done => {
   this.db = handle.getConnection();
   let markets = [];
 
-  var sql = "SELECT table_name FROM information_schema.tables WHERE table_schema = '" + this.config.mysql.database + "'";
+  var sql = `SELECT table_name FROM information_schema.tables WHERE table_schema = '${this.config.mysql.database}'`;
 
   var query = this.db.query(sql, function(err, result) {
       if(err) {
@@ -21,7 +21,7 @@ module.exports = done => {
 
       async.each(result, (table, next) => {
 
-        let parts = table.table_name.split('_');
+        let parts = table.TABLE_NAME.split('_');
         let exchangeName = parts.shift();
         let first = parts.shift();
 

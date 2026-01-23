@@ -10,7 +10,9 @@ module.exports = cb => {
         })
 
       else if(message.type === 'error') {
-        cb(message.error);
+        let err = message.error;
+        if (typeof err === 'string') err = new Error(err);
+        cb(err);
       }
 
       else if(message.type === 'log')
@@ -18,7 +20,7 @@ module.exports = cb => {
     },
     exit: status => {
       if(status !== 0)
-        return cb('Child process has died.');
+        return cb(new Error('Child process has died.'));
       else
         cb(null, { done: true });
     }

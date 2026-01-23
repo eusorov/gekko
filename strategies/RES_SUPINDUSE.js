@@ -1,7 +1,6 @@
 /*jshint esversion: 6 */
 // helpers
 var _ = require('lodash');
-var log = require('../core/log.js');
 var helper = require('../plugins/strategieshelper.js');
 
 
@@ -17,12 +16,10 @@ method.init = function () {
   this.settings.candleSize = this.tradingAdvisor.candleSize;
 
   this.addIndicator('RES_SUPIND', 'RES_SUPIND', this.settings);
-  // this.addIndicator('RES_SUP_BULL', 'RES_SUP_BULL', this.settings);
 
-  // this.addIndicator('smaMiddle20', 'EMA_ENVELOPE', {optInTimePeriod : (20), offset: (60)/1 });
-  // this.addIndicator('smaMiddle60', 'EMA_ENVELOPE', {optInTimePeriod : (20), offset: (0)/1 });
-  // this.addIndicator('smaMiddle100', 'EMA_ENVELOPE', {optInTimePeriod : (20), offset: (-60)/1 });
-  //this.addTulipIndicator('aroonosc', 'aroonosc', this.settings.aroonosc.parameters);
+  const factor = 1440 / this.settings.candleSize
+
+  this.addIndicator('smaMiddle200Factor', 'SMA', 200 * factor);
   
   /*
   * 1. generiert mehr Signale
@@ -35,7 +32,6 @@ method.init = function () {
   */
   this.addTulipIndicator('stochasticTulip', 'stoch', this.settings.stochasticTulip.parameters);
 
-  let factor = 1440 / this.settings.candleSize
 
   this.smaDailies = [20, 60, 100, 140, 180, 220, 260];
   this.smaDailies.forEach(v => {
@@ -92,15 +88,10 @@ method.check = function (candle) {
       this.sellResSupImmidiatelyBear = true;
   }
 
-  // if (this.currentValue.RES_SUPIND == 100 ) {
-  //  // log.debug(this.prevValue);
-  //   log.debug (candle.start.utc().format('YYYY-MM-DD HH:mm') + " buyResSupImmidiatelyBull:"+this.buyResSupImmidiatelyBull);
-  // }
 }
 
 method.updateOneMin = function (candle) {
   this.indicators.RES_SUPIND.updateOneMin(candle);
-  // this.indicators.RES_SUP_BULL.updateOneMin(candle);
   if (!this.completedWarmup || !this.currentValue) {
     return
   }
@@ -171,7 +162,7 @@ method.bullTrendStrat = function(candle, buyadviceProp, selladviceProp){
       this.hasBoughtStochBull = true;
     }
     this.sellResSupImmidiatelyBull = false;
-    this.advice('long', candle, this.indicators.RES_SUPIND.resultprops);
+    this.advice('long', candle, buyadviceProp); // , this.indicators.RES_SUPIND.buyadviceProps
     this.stop = candle.close*0.90;   // stoploss max 10%
   }else if (this.hasBoughtBull
     // && (buyadviceProp.RES_SUPIND_RESULT == 0) 
@@ -184,7 +175,7 @@ method.bullTrendStrat = function(candle, buyadviceProp, selladviceProp){
     this.hasBoughtStochBull = false;
     this.buyResSupImmidiatelyBull = false;
     this.sellResSupImmidiatelyBull = false;
-    this.advice('short', candle, this.indicators.RES_SUPIND.resultprops);
+    this.advice('short', candle, selladviceProp); // this.indicators.RES_SUPIND.selladviceProps
     this.stop = 0;
   }
 }
@@ -203,7 +194,7 @@ method.bearTrendStrat = function(candle, buyadviceProp, selladviceProp){
     if (buyadviceProp.buyStochBear) {
       this.hasBoughtStochBear = true;
     }
-    this.advice('long bear', candle, this.indicators.RES_SUPIND.resultprops);
+    this.advice('long bear', candle, this.indicators.RES_SUPIND.buyadviceProps);
     this.stop = candle.close*1.10;   // stoploss max 5%
   }else if (this.hasBoughtBear
     // && (selladviceProp.RES_SUPIND_RESULT == 0
@@ -217,43 +208,9 @@ method.bearTrendStrat = function(candle, buyadviceProp, selladviceProp){
     this.buyResSupImmidiatelyBear = false;
     this.sellResSupImmidiatelyBear= false;
     this.hasBoughtStochBear = false;
-    this.advice('short bear', candle, this.indicators.RES_SUPIND.resultprops);
+    this.advice('short bear', candle, this.indicators.RES_SUPIND.selladviceProps);
     this.stop = 0;
   }
 }
-
-// {
-//   if (this.completedWarmup && this.currentValue) {
-//     if (this.hasBoughtBull && (
-//       this.indicators.RES_SUPIND.result == 0
-//       // ||
-//       // this.indicators.RES_SUP_BULL.result == 0
-//       )) {
-//       this.advice('short', candle, this.indicators.RES_SUPIND.resultprops)
-//       this.hasBoughtBull = false;
-//       // this.indicators.RES_SUPIND.result = 0;
-//       // this.indicators.RES_SUPIND.result = 0;
-//     } else if (this.hasBoughtBear && this.indicators.RES_SUPIND.result == 0) {
-//       this.advice('short bear', candle, this.indicators.RES_SUPIND.resultprops)
-//       this.hasBoughtBear = false;
-//       // this.indicators.RES_SUPIND.result = 0;
-//     }
-
-//     if (!this.hasBoughtBull && !this.hasBoughtBear && this.indicators.RES_SUPIND.result > 0) { //&& this.indicators.RES_SUPIND.result > 0
-//       // if (this.indicators.RES_SUP_BULL.result > 0){
-
-//         this.advice('long', candle, this.indicators.RES_SUPIND.resultprops)
-//         this.hasBoughtBull = true;
-//         this.indicators.RES_SUPIND.hasBoughtBull = true;
-//         this.indicators.RES_SUP_BULL.hasBoughtBull = true;
-//         // this.indicators.RES_SUPIND.prevValues.length = 0;        
-//         // this.indicators.RES_SUP_BULL.prevValues.length = 0;    
-//       // }
-//     } else if (!this.hasBoughtBear && !this.hasBoughtBull && this.indicators.RES_SUPIND.result < 0) {
-//        this.advice('long bear', candle, this.indicators.RES_SUPIND.resultprops)
-//        this.hasBoughtBear = true;
-//     }
-//   }
-// }
 
 module.exports = method;

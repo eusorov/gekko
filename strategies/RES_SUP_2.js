@@ -1,98 +1,99 @@
 /*jshint esversion: 6 */
 // helpers
 var _ = require('lodash');
-// var log = require('../../core/log.js');
-const EMA_ENVELOPE = require('./EMA_ENVELOPE.js');
-const SMA = require('./SMA.js');
-const TULIPASYNC = require('./TulipAsync');
+var helper = require('../plugins/strategieshelper.js');
+const TULIPASYNC = require('./indicators/TulipAsync');
 
+// let's create our own method
+var method = {};
 
-var Indicator = function(settings) {
-  this.input = 'candle';
-  this.settings = settings;
-
-  this.nearSmaProcent = this.settings.res_sup.nearSmaProcent;
-  this.breakSmaProcent = this.settings.res_sup.breakSmaProcent; //6 best btc = 3% xrp = 3%
-
-  this.buyingAge = 0;
-
-
+// prepare everything our method needs
+method.init = function () {
   this.hasBoughtBull = false;
   this.hasBoughtBear = false;
   this.bearMarket = false;
+  this.buyingAge = 0;
+
   this.prevValues = [];
+  this.settings.candleSize = this.tradingAdvisor.candleSize;
 
-  this.indicators = {};
+  // Defaults if not in settings
+  this.nearSmaProcent = (this.settings.res_sup && this.settings.res_sup.nearSmaProcent) || 1; 
+  this.breakSmaProcent = (this.settings.res_sup && this.settings.res_sup.breakSmaProcent) || 3;
 
-  // always calculate daily sma
-  // 24h =  1440; 1440/240 = 6 oder 1440/60=24 
-  // let factor = 1440 / this.tradingAdvisor.candleSize;
-  const factor = 1440 / this.settings.candleSize
+  this.buyBullSma = 0;
+  this.buyBearSma = 0;
+  this.breakSma = 0;
 
-  //TODO evtl. 140 +-10!
-  this.smaDailies = [20,60,100, 140, 180,220,260]; //
+  let factor = 1440 / this.settings.candleSize
+
+  this.smaDailies = [20, 60, 100, 140, 180, 220, 260];
   this.smaDailies.forEach(v => {
-    this.indicators['smaMiddle'+v+'daily'] = new EMA_ENVELOPE({optInTimePeriod : (20 * factor ), offset: (140-v)*0.03 });
+    this.addIndicator('smaMiddle' + v + 'daily', 'EMA_ENVELOPE', { optInTimePeriod: (20 * factor), offset: (140 - v) *0.03 });
   });
 
-  this.settings.aroonosc.parameters.optInTimePeriod = 14* factor/6; //aroonsc alwyas 14 for as 4h 56 for 1H
-  this.tulipIndicators = {};
-  this.tulipIndicators.aroonosc = new TULIPASYNC({ indicator: 'aroonosc', length: 900,
-       candleinput: 'high,low',
-       options: [this.settings.aroonosc.parameters.optInTimePeriod] });
+  this.addTulipIndicator('stochasticTulip', 'stoch', this.settings.stochasticTulip.parameters);
 
-  this.result = 0;
+  this.customTulipIndicators = {};
+  this.customTulipIndicators.aroonosc = new TULIPASYNC({ indicator: 'aroonosc', length: 900,
+       candleinput: 'high,low',
+       options: [this.settings.aroonosc.parameters.optInTimePeriod * factor/6] });
+
+       
+  this.addIndicator('smaMiddle100Factor', 'SMA', 100 * factor);
+
 }
 
-// what happens on every new candle?
-Indicator.prototype.update = async function(candle) {
-  
-  this.smaDailies.forEach(v => {
-    this.indicators['smaMiddle'+v+'daily'].update(candle.close);
-  });
-  this.skipCandle = false;
-  
+// for debugging purposes: log the last calculated
+method.log = function (candle) {
+}
+
+method.check = async function (candle) {
   let currentValue = {};
   currentValue.candle = candle;
   
+  // 1. Gather SMA values
+
+
   let indicatorNames = Object.keys(this.indicators);
   indicatorNames.forEach((name) => currentValue[name] = this.indicators[name].result);
-  
+
+  // 2. Update and gather Aroon
+  const aroonoscResult = await this.customTulipIndicators.aroonosc.update(candle);
+  currentValue.aroonosc = aroonoscResult[0];
+ 
+
+  // 3. Manage History
   this.prevValue = this.prevValues[this.prevValues.length-1];
-  currentValue.smaDailies = this.smaDailies;
-  
-  const aroonosc = await this.tulipIndicators.aroonosc.update(candle);
-  currentValue.aroonosc = aroonosc[0];
-
   this.currentValue = currentValue;
-  
   this.prevValues.push(currentValue);
+  if (this.prevValues.length > 50) this.prevValues.shift();
 
-  if (this.prevValues.length > 50) {
-    this.prevValues.shift();
-  }
+  this.buyingAge = this.buyingAge > 0? this.buyingAge+1 : 0;
 
-  //sell when sma broken
-  //1. candle close under sma
+  // 4. Check Bear Market & Break SMA
   this.breakSma = 0;
   if ((!this.bearMarket && this.hasBoughtBull) || (this.bearMarket && this.hasBoughtBear)){
-    const smaDailies = this.bearMarket ? this.smaDailies.reverse() : this.smaDailies;
+    const smaDailies = this.bearMarket ? this.smaDailies.slice().reverse() : this.smaDailies;
+    
     smaDailies.some((v)=> {
 
       const smaDaily = currentValue['smaMiddle'+v+'daily'];
-      if (breakSmaFn(this.breakSmaProcent, currentValue.candle, smaDaily, this.bearMarket, (!this.bearMarket && this.buyBullSma === v) || (this.bearMarket && this.buyBearSma === v)
-                //|| (this.buyBearSma === v)
-                // sell if eg MA20 breaks with one of three prevCandle > MA20
+      // logic adapted from RES_SUPIND.js
+      if (breakSmaFn(this.breakSmaProcent, currentValue.candle, smaDaily, this.bearMarket, (!this.bearMarket && this.buyBullSma === v) || (this.bearMarket && this.buyBearSma === v) 
                || (!this.bearMarket && this.buyBullSma > v &&  this.prevValues.some((prevValue) => prevValue.candle.close > smaDaily ))
-               || ( this.bearMarket && this.buyBearSma < v &&  this.prevValues.some((prevValue) => prevValue.candle.close < smaDaily )) //prevValue['smaMiddle'+v+'daily'] is more right, but lowers performance
+              || ( this.bearMarket && this.buyBearSma < v &&  this.prevValues.some((prevValue) => prevValue.candle.close < smaDaily )) 
           )){
 
         this.breakSma = v;
+        
+        // Defaults for market switch thresholds if not in settings
+        const breakSmaBearMarket = (this.settings.res_sup && this.settings.res_sup.breakSmaBearMarket) || 140;
+        const breakSmaBullMarket = (this.settings.res_sup && this.settings.res_sup.breakSmaBullMarket) || 140;
 
-        if (!this.bearMarket && (currentValue.candle.close < currentValue['smaMiddle'+this.settings.res_sup.breakSmaBearMarket+'daily'])){ //
-          this.bearMarket = true; //break MA then bearMarket
-        }else if (this.bearMarket && (currentValue.candle.close >  currentValue['smaMiddle'+this.settings.res_sup.breakSmaBullMarket+'daily'])){
-          //XBT 140 vs 140 3%breakSma ETH bull 100 vs bear 180 6%breakSMA XRP 140 vs 140
+        if (!this.bearMarket && (currentValue.candle.close < currentValue['smaMiddle100Factor'])){ 
+          this.bearMarket = true; 
+        }else if (this.bearMarket && (currentValue.candle.close >  currentValue['smaMiddle100Factor'])){
           this.bearMarket = false;
         }
         return true;
@@ -100,10 +101,46 @@ Indicator.prototype.update = async function(candle) {
     });
   }
 
+  //stochastic
+  let buyStochBull = false;
+  if (this.currentValue.RES_SUPIND > 0  && this.prevValue
+    && helper.crossLong(this.prevValue.stochasticTulip.stochK, this.prevValue.stochasticTulip.stochD, this.currentValue.stochasticTulip.stochK, this.currentValue.stochasticTulip.stochD)
+    && this.currentValue.stochasticTulip.stochK < 50
+    && this.currentValue.stochasticTulip.stochD < 50
+    ){
+      buyStochBull = true;
+  }
+
+  let buyStochBear = false;
+  if (this.currentValue.RES_SUPIND < 0  && this.prevValue 
+    && helper.crossShort(this.prevValue.stochasticTulip.stochK, this.prevValue.stochasticTulip.stochD, this.currentValue.stochasticTulip.stochK, this.currentValue.stochasticTulip.stochD)
+    && this.currentValue.stochasticTulip.stochK > 50
+    && this.currentValue.stochasticTulip.stochD > 50
+    ){
+      buyStochBear = true;
+  }
+
+  let sellStochBull = false;
+  if (this.currentValue.RES_SUPIND > 0  && this.prevValue
+    && this.prevValue.stochasticTulip.stochD > 80
+    && this.currentValue.stochasticTulip.stochK < 80
+    && this.currentValue.stochasticTulip.stochD < 80
+    ){
+      sellStochBull = true;
+  }
+
+  let sellStochBear = false;
+  if (this.currentValue.RES_SUPIND < 0  && this.prevValue
+    && this.prevValue.stochasticTulip.stochD < 20
+    && this.currentValue.stochasticTulip.stochK > 20
+    && this.currentValue.stochasticTulip.stochD > 20
+    ){
+      sellStochBear = true;
+  }
 }
 
 // we can make hier a stoploss?
-Indicator.prototype.updateOneMin = function(candle) {
+method.updateOneMin = function(candle) {
   if (!this.currentValue){
     return;
   }
@@ -123,72 +160,63 @@ Indicator.prototype.updateOneMin = function(candle) {
     this.bearTrendStrat(candle, buyadviceProp, selladviceProp);
   }
 
-  // buy range
-
 }
 
-Indicator.prototype.bullTrendStrat = function(candle, buyadviceProp, selladviceProp){
-
+method.bullTrendStrat = function(candle, buyadviceProp, selladviceProp){
   if (!this.hasBoughtBull
     && !this.hasBoughtBear
     && ( buyadviceProp.nearSma > 0 )
     && buyadviceProp.isTrend
   ){
+   
     this.hasBoughtBull = true;
-    this.result = 100;
-    this.buyadviceProps = buyadviceProp;
-
+    this.advice('long', candle, {nearSma: buyadviceProp.nearSma, isTrend: buyadviceProp.isTrend, bearMarket: buyadviceProp.bearMarket}); // Executing buy
+    
     // merken sma
     this.buyBullSma = buyadviceProp.nearSma;
     this.breakSma = 0;
     this.prevValues.length = 0; // get rid of previous values
     this.stop = candle.close*0.90;   // stoploss max 10%
   }else if (this.hasBoughtBull
-   && (selladviceProp.breakSma > 0
+    && (selladviceProp.breakSma > 0
       // || selladviceProp.resistanceSma > 0
       // || (candle.close < this.stop)
-
-  )){
+      ) 
+  ){
     this.hasBoughtBull = false;
-    this.result = 0;
-    this.selladviceProps = selladviceProp;
+    this.advice('short', candle, {breakSma: selladviceProp.breakSma, bearMarket: selladviceProp.bearMarket}); // Executing sell
+    
+    this.buyingAge = 0;
     this.breakSma = 0;
     this.buyBullSma = 0;
     this.stop = 0;
-    this.skipCandle = true;
   }
 }
 
-
-Indicator.prototype.bearTrendStrat = function(candle, buyadviceProp, selladviceProp){
-
+method.bearTrendStrat = function(candle, buyadviceProp, selladviceProp){
   if (!this.hasBoughtBear
     && !this.hasBoughtBull
     && ( buyadviceProp.nearSma > 0 )
     && buyadviceProp.isTrend
   ){
     this.hasBoughtBear = true;
-    this.result = -100;
-    this.buyadviceProps = buyadviceProp;
-    // merken sma
+    this.advice('long bear', candle, {nearSma: buyadviceProp.nearSma, isTrend: buyadviceProp.isTrend, bearMarket: buyadviceProp.bearMarket}); 
+    
+    this.buyingAge = 1;
     this.buyBearSma = buyadviceProp.nearSma;
     this.breakSma = 0;
-    this.prevValues.length = 0; // get rid of previous values
-    this.stop = candle.close*1.10;   // stoploss max 5%
+    this.prevValues.length = 0; 
+    this.stop = candle.close*1.10;   
   }else if (this.hasBoughtBear
-    && (selladviceProp.breakSma > 0
-      //  || selladviceProp.resistanceSma > 0
-      //  || (candle.close > this.stop)
-      ) 
-
+    && (selladviceProp.breakSma > 0) 
   ){
     this.hasBoughtBear = false;
-    this.result = 0;
-    this.selladviceProps = selladviceProp;
+    this.advice('short bear', candle, {breakSma: selladviceProp.breakSma, bearMarket: selladviceProp.bearMarket}); // Exit short = Buy back
+    
+    this.buyingAge = 0;
     this.breakSma = 0;
     this.buyBearSma = 0;
     this.stop = 0;
-    this.skipCandle = true;
   }
 }
 
@@ -259,4 +287,4 @@ function breakSmaFn (procent, candle, sma, bearMarket, shouldCheck){
   return breakSma;
 }
 
-module.exports = Indicator;
+module.exports = method;
