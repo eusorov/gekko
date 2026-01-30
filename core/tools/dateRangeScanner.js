@@ -5,7 +5,6 @@ var MISSING_CANDLES_ALLOWED = 3; // minutes, per batch
 
 var _ = require('lodash');
 var moment = require('moment');
-var nodeUtil  = require('util');
 
 var util = require('../util');
 var config = util.getConfig();
@@ -17,10 +16,49 @@ var Reader = require(dirs.gekko + adapter.path + '/reader');
 
 var reader = new Reader();
 
-var readerTableExists = nodeUtil.promisify(reader.tableExists);
-var readerGetBoundry = nodeUtil.promisify(reader.getBoundry);
-var readerCountTotal = nodeUtil.promisify(reader.countTotal);
-var readerCount = nodeUtil.promisify(reader.count);
+function readerTableExists(name) {
+  return new Promise((resolve, reject) => {
+    reader.tableExists(name, (err, res) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(res);
+    });
+  });
+}
+
+function readerGetBoundry() {
+  return new Promise((resolve, reject) => {
+    reader.getBoundry((err, res) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(res);
+    });
+  });
+}
+
+function readerCountTotal() {
+  return new Promise((resolve, reject) => {
+    reader.countTotal((err, res) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(res);
+    });
+  });
+}
+
+function readerCount(from, to) {
+  return new Promise((resolve, reject) => {
+    reader.count(from, to, (err, res) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(res);
+    });
+  });
+}
 
 async function scan(done) {
   log.info('Scanning local history for backtestable dateranges.');

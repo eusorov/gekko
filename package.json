@@ -40,9 +40,12 @@
     "semver": "5.4.1",
     "stats-lite": "^2.0.4",
     "toml": "^2.3.0",
-    "tulind": "^0.8.18",
+    "tulind": "^0.8.20",
     "winston": "^3.1.0",
     "ws": "^6.0.0"
+  },
+  "overrides": {
+    "ipcee": "^2.0.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
@@ -54,7 +57,7 @@
     "sinon": "^4.5.0"
   },
   "engines": {
-    "node": ">=8.11.2"
+    "node": ">=24.0.0"
   },
   "license": "MIT",
   "repository": {

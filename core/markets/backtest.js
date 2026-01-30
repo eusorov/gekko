@@ -58,6 +58,16 @@ Market.prototype._read = _.once(function() {
   this.get();
 });
 
+//fix fox v24 node, that pipe can be closed
+Market.prototype.hasWritableDestination = function() {
+  const state = this._readableState;
+  if(!state || !state.pipes)
+    return true;
+
+  const pipes = Array.isArray(state.pipes) ? state.pipes : [state.pipes];
+  return _.some(pipes, p => !(p.writableEnded || p.destroyed || p.writable === false));
+}
+
 Market.prototype.get = function() {
   if(this.iterator.to >= to) {
     this.iterator.to = to;
@@ -73,16 +83,34 @@ Market.prototype.get = function() {
 }
 
 Market.prototype.processCandles = function(err, candles) {
+  if (this.closed)
+    return;
+
+  if (!this.hasWritableDestination()) {
+    this.closed = true;
+    this.reader.close();
+    return;
+  }
+
+  if (err) {
+    log.error('Market error:', err);
+    // If we have an error, we probably shouldn't continue
+    this.closed = true;
+    this.reader.close();
+    return;
+  }
+
   this.pushing = true;
-  
+    
   var amount = _.size(candles);
-    if(this.ended && amount === 0) {
-      this.closed = true;
-      this.reader.close();
-      this.push({isFinished: true});
-    } else if (amount === 0 && config.watch.exchange !== "stocks"){
-      util.die('Query returned no candles (do you have local data for the specified range?)');
-    }
+  if (this.ended && amount === 0) {
+    this.closed = true;
+    this.reader.close();
+    if (this.hasWritableDestination())
+      this.push({ isFinished: true });
+  } else if (amount === 0 && config.watch.exchange !== "stocks") {
+    util.die('Query returned no candles (do you have local data for the specified range?)');
+  }
 
   if(!this.ended && amount < this.batchSize && config.watch.exchange !== "stocks") {
     var d = function(ts) {
@@ -95,7 +123,12 @@ Market.prototype.processCandles = function(err, candles) {
 
   _.each(candles, function(c, i) {
     c.start = moment.unix(c.start);
-    this.push(c);
+      if(!this.hasWritableDestination()) {
+        this.closed = true;
+        return false;
+      }
+
+      this.push(c);
   }, this);
 
   this.pushing = false;
@@ -103,7 +136,7 @@ Market.prototype.processCandles = function(err, candles) {
   this.iterator = {
     from: this.iterator.from.clone().add(this.batchSize, 'm'),
     to: this.iterator.from.clone().add(this.batchSize * 2, 'm').subtract(1, 's')
-  }
+  } 
 
   if(!this.closed)
     this.get();

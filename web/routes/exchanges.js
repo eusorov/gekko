@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const fs = require('fs');
 const readdirAsync = require('util').promisify(fs.readdir);
 
@@ -15,7 +14,7 @@ util.setConfig(config);
 module.exports = async function (ctx) {
   const exchangesDir = await readdirAsync(gekkoRoot + 'exchange/wrappers/');
   const exchanges = exchangesDir
-    .filter(f => _.last(f, 3).join('') === '.js')
+    .filter(f => f.endsWith('.js'))
     .map(f => f.slice(0, -3));
 
   let allCapabilities = [];
