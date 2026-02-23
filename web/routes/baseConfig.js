@@ -91,7 +91,7 @@ config.mongodb = {
 config.mysql = {
   path: 'plugins/mysql',
   version: 0.1,
-  host: 'localhost',
+  host: 'host.docker.internal',
   database: 'cryptodb',
   user: 'crypto',
   password :'123456'
