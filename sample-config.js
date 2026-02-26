@@ -372,7 +372,7 @@ config.mongodb = {
 config.mysql = {
   path: 'plugins/mysql',
   version: 0.1,
-  host: 'host.docker.internal',
+  host: process.env.DB_HOST || 'host.docker.internal',
   database: 'cryptodb',
   user: 'crypto',
   password: '123456'

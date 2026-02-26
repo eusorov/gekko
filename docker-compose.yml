@@ -2,17 +2,21 @@ version: '3'
 services:
   gekko:
     build: ./
-    networks:
-      - nginx_proxy_net
+    container_name: gekko
     volumes:
       - ./sample-config.js:/usr/src/app/sample-config.js
     environment:
      - VIRTUAL_HOST=gekko.local
      - VIRTUAL_PORT=3000
+     - DB_HOST=host.docker.internal
     extra_hosts:
      - "host.docker.internal:host-gateway" # for exchange to access host.docker.internal db
-    ports: # you can comment this out when using the nginx frontend
-      - "3000:3000"
+    #ports: # you can comment this out when using the nginx frontend
+    # - "3000:3000"
+    expose:
+      - 3000
+    networks:
+      - nginx_proxy_net
 
 
 networks:

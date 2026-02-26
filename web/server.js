@@ -127,16 +127,15 @@ if (process.env.NODE_ENV!='test') {
 }
 server.timeout = config.api.timeout || 120000;
 server.on('request', app.callback());
-server.listen({port : process.env.PORT || config.ui.port} , () => {
-  const host = `${process.env.HOST || config.ui.host}:${process.env.PORT || config.ui.port}${config.ui.path}`;
-
+server.listen({port : process.env.VIRTUAL_PORT || config.ui.port} , () => {
+  const host = `${(process.env.VIRTUAL_HOST || config.ui.host).split(',')[0].trim()}:${process.env.VIRTUAL_PORT || config.ui.port}${config.ui.path}`;
   if(process.env.SSL === 'true' || config.ui.ssl) {
     var location = `https://${host}`;
   } else {
     var location = `http://${host}`;
   }
 
-  console.log('Serving Gekko UI on ' + location +  '\n');
+  console.log(`Serving Gekko UI on ${location} \n`);
 
 
   // only open a browser when running `node gekko`
