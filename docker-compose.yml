@@ -6,7 +6,7 @@ services:
     volumes:
       - ./sample-config.js:/usr/src/app/sample-config.js
     environment:
-     - VIRTUAL_HOST=gekko.local
+     - VIRTUAL_HOST=gekko.usomi.de
      - VIRTUAL_PORT=3000
      - DB_HOST=host.docker.internal
     extra_hosts:
