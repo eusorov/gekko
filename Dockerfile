@@ -21,8 +21,13 @@ WORKDIR /usr/src/app/exchange
 RUN npm install
 WORKDIR /usr/src/app
 
-# Bundle app source
+# Install Vue UI dependencies and build
+COPY ./web/vue/package.json /usr/src/app/web/vue/package.json
+RUN cd /usr/src/app/web/vue && npm install --ignore-scripts
+
+# Bundle app source and build Vue
 COPY . /usr/src/app
+RUN cd web/vue && npm run build
 
 #RUN chmod +x /usr/src/app/docker-entrypoint.sh
 

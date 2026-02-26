@@ -1,5 +1,7 @@
 node_modules
 exchange/node_modules
+web/vue/node_modules
+web/vue/dist
 .travis.yml
 volumes
 config.js
