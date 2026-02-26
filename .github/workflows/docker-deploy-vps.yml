@@ -1,0 +1,103 @@
+name: Deploy Docker
+
+on:
+  workflow_call:
+    secrets:
+      VPS_HOST:
+        required: true
+      VPS_USER:
+        required: true
+      VPS_SSH_KEY:
+        required: true
+      DOCKER_TOKEN:
+        required: true
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: gekko
+  REMOTE_DIR: ~/gekko
+  CONTAINER_NAME: gekko
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # - name: Copy .env.example to VPS as temporary file
+      #   uses: appleboy/scp-action@v1.0.0
+      #   with:
+      #     host: ${{ secrets.VPS_HOST }}
+      #     username: ${{ secrets.VPS_USER }}
+      #     key: ${{ secrets.VPS_SSH_KEY }}
+      #     source: ".env.example"
+      #     target: ${{ env.REMOTE_DIR }}
+      
+      # - name: Rename .env.example to .env on VPS
+      #   uses: appleboy/ssh-action@v1.2.3
+      #   with:
+      #     host: ${{ secrets.VPS_HOST }}
+      #     username: ${{ secrets.VPS_USER }}
+      #     key: ${{ secrets.VPS_SSH_KEY }}
+      #     script: |
+      #       cd ${{ env.REMOTE_DIR }}
+      #       if [ -f .env.example ]; then
+      #         mv .env.example .env
+      #         echo ".env file created from .env.example"
+      #       elif [ -d .env.example ]; then
+      #         echo "Error: .env.example is a directory, not a file"
+      #         exit 1
+      #       else
+      #         echo "Warning: .env.example not found"
+      #       fi
+      - name: Copy docker-compose.yml to VPS
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "docker-compose*.yml,siteconfs/*.conf,ssl/*.crt,ssl/*.key"
+          target: ${{ env.REMOTE_DIR }}
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ env.REMOTE_DIR }}
+            docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
+            docker image prune -f -a
+            docker pull ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            docker pull ghcr.io/eusorov/tokeemo-nextjs:latest
+
+            export BACKEND_IMAGE=ghcr.io/eusorov/tokeemo2:latest
+            export FRONTEND_IMAGE=ghcr.io/eusorov/tokeemo-nextjs:latest
+            
+            # Ensure the external network nginx_proxy_net exists before deploying
+            if ! docker network inspect nginx_proxy_net > /dev/null 2>&1; then
+              echo "Network nginx_proxy_net does not exist. Creating it..."
+              # Try to start nginx-proxy compose file first (which creates the network)
+              if [ -f docker-compose-nginx-proxy.yml ]; then
+                echo "Starting nginx-proxy from docker-compose-nginx-proxy.yml..."
+                docker compose -f docker-compose-nginx-proxy.yml up -d
+              else
+                # Fallback: create the network manually if compose file doesn't exist
+                echo "Creating nginx_proxy_net network manually..."
+                docker network create nginx_proxy_net
+              fi
+            else
+              echo "Network nginx_proxy_net already exists"
+              # Ensure nginx-proxy container is running if compose file exists
+              if [ -f docker-compose-nginx-proxy.yml ]; then
+                docker compose -f docker-compose-nginx-proxy.yml up -d
+              fi
+            fi
+            
+            docker stop "${{ env.CONTAINER_NAME }}" || true
+            docker rm "${{ env.CONTAINER_NAME }}" || true
+      
+            docker compose pull
+            docker compose up -d
+      
