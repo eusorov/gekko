@@ -4,24 +4,13 @@ const config = window.CONFIG.ui;
 
 let basePath, restPath, wsPath;
 
-const host = process.env.VUE_APP_HOST || config.host;
-const port = process.env.VUE_APP_PORT || config.port;
-const ssl = (process.env.VUE_APP_SSL === 'true') || config.ssl;
-
 // rest API path
-if(ssl) {
-  basePath = `https://${host}${config.path}`;
-} else {
-  basePath = `http://${host}:${port}${config.path}`;
-}
+basePath = `${window.location.origin}${config.path}`;
 
 restPath = basePath + 'api/';
-// ws API path
-if(ssl) {
-  wsPath = `wss://${host}${config.path}api`;
-} else {
-  wsPath = `ws://${host}:${port}${config.path}api`;
-}
+// ws API path - use host (not origin) to avoid embedding http:// in ws:// URL
+const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+wsPath = `${wsProtocol}://${window.location.host}${config.path}api`;
 
 export {
   wsPath,
