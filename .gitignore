@@ -53,3 +53,5 @@ SECRET-api-keys.json
 exchange/nusadua
 RES_SUP.*
 BONE.*
+
+web/vue/dist
