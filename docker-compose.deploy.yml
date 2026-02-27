@@ -1,6 +1,5 @@
 # Override for deployment: use pre-built image from registry instead of building.
 # Usage: DOCKER_IMAGE=ghcr.io/eusorov/gekko:latest docker compose -f docker-compose.yml -f docker-compose.deploy.yml up -d
-version: '3'
 services:
   gekko:
     image: ${DOCKER_IMAGE}
