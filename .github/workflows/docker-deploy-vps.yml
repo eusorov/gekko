@@ -2,6 +2,11 @@ name: Deploy Docker
 
 on:
   workflow_call:
+    inputs:
+      IMAGE:
+        required: true
+        type: string
+        description: Full Docker image reference (e.g. ghcr.io/eusorov/gekko:latest)
     secrets:
       VPS_HOST:
         required: true
@@ -12,9 +17,13 @@ on:
       DOCKER_TOKEN:
         required: true
   workflow_dispatch:
+    inputs:
+      IMAGE:
+        required: true
+        type: string
+        description: Full Docker image reference (e.g. ghcr.io/eusorov/gekko:latest)
 
 env:
-  IMAGE_NAME: gekko
   REMOTE_DIR: ~/gekko
   CONTAINER_NAME: gekko
 
@@ -68,12 +77,8 @@ jobs:
           script: |
             cd ${{ env.REMOTE_DIR }}
             docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
-            docker image prune -f -a
-            docker pull ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            docker pull ghcr.io/eusorov/tokeemo-nextjs:latest
-
-            export BACKEND_IMAGE=ghcr.io/eusorov/tokeemo2:latest
-            export FRONTEND_IMAGE=ghcr.io/eusorov/tokeemo-nextjs:latest
+            docker image prune -a
+            docker pull ${{ inputs.IMAGE }}
             
             # Ensure the external network nginx_proxy_net exists before deploying
             if ! docker network inspect nginx_proxy_net > /dev/null 2>&1; then
