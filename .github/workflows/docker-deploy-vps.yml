@@ -76,6 +76,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd ${{ env.REMOTE_DIR }}
+            echo "DOCKER_IMAGE=${{ inputs.IMAGE }}" > .env
             docker login ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.DOCKER_TOKEN }}
             docker image prune -a
             docker pull ${{ inputs.IMAGE }}
@@ -103,6 +104,6 @@ jobs:
             docker stop "${{ env.CONTAINER_NAME }}" || true
             docker rm "${{ env.CONTAINER_NAME }}" || true
       
-            docker compose pull
-            docker compose up -d
+            docker compose -f docker-compose.yml -f docker-compose.deploy.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.deploy.yml up -d
       
